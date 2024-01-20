@@ -9,10 +9,10 @@ import {
   Input,
 } from "@mui/material";
 import { sum } from "lodash";
-import { Company } from "../types";
+import { PortfolioAllocation } from "@/database/getPortfolios";
 
 type PortfolioConfigProps = {
-  companies?: (Company & { allocation: number })[];
+  companies?: PortfolioAllocation[];
 };
 
 export const PortfolioConfig = ({ companies = [] }: PortfolioConfigProps) => {
