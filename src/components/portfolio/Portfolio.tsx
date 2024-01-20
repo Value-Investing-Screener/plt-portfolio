@@ -78,7 +78,7 @@ export const Portfolio = ({ label, companies, currency }: PortfolioProps) => {
       </TableContainer>
       <Typography variant="h4">
         Dividende annuel moyen du portefeuille:{" "}
-        {(Math.round(averageDividendPerYear * 10) / 10).toLocaleString("fr-FR")}
+        {(Math.round(averageDividendPerYear * 100) / 100).toLocaleString("fr-FR")}
         %
       </Typography>
       <Grid container columns={{ md: 3 }} className="my-12" height={"300px"}>
