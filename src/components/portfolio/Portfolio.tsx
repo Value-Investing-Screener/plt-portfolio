@@ -13,6 +13,7 @@ import { SectorChart } from "./SectorChart";
 import { ContinentChart } from "./ContinentChart";
 import { SizeChart } from "./SizeChart";
 import { Company } from "../types";
+import { sum } from "lodash";
 
 type PortfolioProps = {
   label: string;
@@ -21,7 +22,12 @@ type PortfolioProps = {
 };
 
 export const Portfolio = ({ label, companies, currency }: PortfolioProps) => {
-  const averageDividendPerYear = 4.6;
+  const averageDividendPerYear =
+    sum(
+      companies.map(
+        ({ dividendYieldTTM, allocation }) => dividendYieldTTM * allocation
+      )
+    ) / 100;
 
   if (companies.length === 0) {
     return (
@@ -72,7 +78,8 @@ export const Portfolio = ({ label, companies, currency }: PortfolioProps) => {
       </TableContainer>
       <Typography variant="h4">
         Dividende annuel moyen du portefeuille:{" "}
-        {averageDividendPerYear.toLocaleString("fr-FR")}%
+        {(Math.round(averageDividendPerYear * 10) / 10).toLocaleString("fr-FR")}
+        %
       </Typography>
       <Grid container columns={{ md: 3 }} className="my-12" height={"300px"}>
         <Grid item md={1}>
