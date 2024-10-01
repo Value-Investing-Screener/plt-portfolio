@@ -48,7 +48,7 @@ const bondsAndCash: PortfolioAllocation[] = [
     dividendYieldTTM: 0,
   },
   {
-    allocation: 8.95,
+    allocation: 5.95,
     name: "Cash Franc Suisse",
     ticker: "CHFEUR=X",
     currency: "CHF",
