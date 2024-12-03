@@ -1,15 +1,22 @@
+import { useQuery, QueryObserverResult } from "react-query";
 import { Portfolio } from "@/database/getPortfolios";
-import { QueryObserverResult, useQuery } from "react-query";
 
 export const useGetPortofliosQuery = (): QueryObserverResult<
   Portfolio[],
   any
 > => {
-  return useQuery(["portoflios"], async () => {
-    return fetch(`${process.env.NEXT_PUBLIC_API_URL}/api`, {
-      method: "GET",
-    }).then(async (res) => {
-      return res?.json();
-    });
-  });
+  return useQuery(
+    ["portoflios"],
+    async () => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api`, {
+        method: "GET",
+      });
+      return response.json();
+    },
+    {
+      staleTime: 0,
+      cacheTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: true,
+    }
+  );
 };
