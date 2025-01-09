@@ -10,6 +10,11 @@ export const useGetPortofliosQuery = (): QueryObserverResult<
     async () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api`, {
         method: "GET",
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
       });
       return response.json();
     },
