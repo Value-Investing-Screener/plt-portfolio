@@ -64,7 +64,7 @@ const getStockPrice = async (ticker: string) => {
     return 0;
   }
   return fetch(
-    `https://eodhd.com/api/eod/AAPL?api_token=63a427fee55743.17582228&fmt=json`
+    `https://eodhd.com/api/eod/${ticker}?api_token=63a427fee55743.17582228&fmt=json`
   ).then(async (response) => {
     const prices = (await response.json()) as { [key: string]: number | string }[];
     return maxBy(prices, "date")?.adjusted_close as number;
