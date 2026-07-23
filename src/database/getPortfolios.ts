@@ -55,11 +55,17 @@ const getStockPrice = async (ticker: string) => {
 };
 
 export const getPortfolios = async (): Promise<Portfolio[]> => {
+  const ownerEmail = process.env.PLT_PORTFOLIO_OWNER_EMAIL;
+
+  if (!ownerEmail) {
+    throw new Error(
+      "PLT_PORTFOLIO_OWNER_EMAIL manquant : impossible d'identifier les portefeuilles modèles côté Hasura."
+    );
+  }
+
   const { data } = await callDatabase<{ data: GetPortfolioQuery }>({
     query: getPortfoliosQuery,
-    variables: {
-      ownerEmail: process.env.PLT_PORTFOLIO_OWNER_EMAIL,
-    },
+    variables: { ownerEmail },
   });
 
   // Lignes hors référentiel screener (ETF obligataires, cash) : elles vivent

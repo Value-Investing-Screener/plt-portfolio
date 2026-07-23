@@ -47,7 +47,15 @@
       "Bash(env)",
       "Bash(grep -o \"^SUPABASE_ACCESS_TOKEN=.\\\\{0,4\\\\}\" .env)",
       "Bash(grep -o \"^NEXT_PUBLIC_SUPABASE_URL=.\\\\{0,8\\\\}\" .env)",
-      "Bash(node ./check-tmp.mjs)"
+      "Bash(node ./check-tmp.mjs)",
+      "Bash(curl -s -o /dev/null -w \"googleapis:%{http_code} %{time_total}s\\\\n\" -H \"User-Agent: Mozilla/5.0\" \"https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&display=swap\")",
+      "Bash(curl -s -o /dev/null -w \"gstatic:%{http_code}\\\\n\" \"https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1isq131nj-otFQ.woff2\")",
+      "Bash(git ls-remote *)",
+      "Bash(npx vercel *)",
+      "Bash(grep -vE \"^│|^╭|^╰|^$|Update available|latest update|npm i -g\")",
+      "Bash(pkill -f \"vercel whoami\")",
+      "Bash(curl -sS -A 'Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36' 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap' -o /private/tmp/claude-501/-Users-estellejacot-Documents-me-CodingCapital-plt-portfolio/6a801b72-dd96-4087-b613-01a301796cbe/scratchpad/sans.css)",
+      "Bash(curl -sS -A 'Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36' 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap' -o /private/tmp/claude-501/-Users-estellejacot-Documents-me-CodingCapital-plt-portfolio/6a801b72-dd96-4087-b613-01a301796cbe/scratchpad/mono.css)"
     ]
   }
 }

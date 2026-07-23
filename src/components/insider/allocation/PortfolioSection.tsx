@@ -23,6 +23,8 @@ type PortfolioSectionProps = {
   currency: string;
   companies: Holding[];
   loading: boolean;
+  /** Message d'erreur de chargement, s'il y en a un. */
+  failure?: string | null;
 };
 
 export const PortfolioSection = ({
@@ -33,6 +35,7 @@ export const PortfolioSection = ({
   currency,
   companies,
   loading,
+  failure = null,
 }: PortfolioSectionProps) => {
   const value = companies.reduce(
     (total, company) => total + company.shareInChosenCurrency,
@@ -109,6 +112,10 @@ export const PortfolioSection = ({
             <>
               <Spinner /> Chargement des positions…
             </>
+          ) : failure ? (
+            <span style={{ color: colors.negative, textAlign: "center" }}>
+              {failure}
+            </span>
           ) : (
             "Aucune position disponible pour ce portefeuille."
           )}

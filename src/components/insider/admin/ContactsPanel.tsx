@@ -13,7 +13,7 @@ import type { ActionResult } from "@/app/actions/publications";
 import { colors, MONO } from "@/design/tokens";
 import type { MemberRow } from "@/lib/plt/types";
 import { EmptyState, Label, Panel, PrimaryButton } from "../ui";
-import { INPUT_STYLE, SmallButton } from "./shared";
+import { INPUT_STYLE, SmallButton, type RunAction } from "./shared";
 
 const GRID = "1.4fr 1.8fr 0.9fr auto";
 
@@ -29,11 +29,11 @@ const initials = (name: string, email: string) =>
 export const ContactsPanel = ({
   members,
   currentMemberId,
-  report,
+  runAction,
 }: {
   members: MemberRow[];
   currentMemberId: string;
-  report: (result: ActionResult) => boolean;
+  runAction: RunAction;
 }) => {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -41,7 +41,7 @@ export const ContactsPanel = ({
 
   const run = (action: () => Promise<ActionResult>, onDone?: () => void) =>
     startTransition(async () => {
-      if (report(await action())) {
+      if (await runAction(action)) {
         onDone?.();
         router.refresh();
       }

@@ -187,18 +187,49 @@ export const useFlash = () => {
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  /** Traduit le retour d'une Server Action en message affichable. */
-  const report = useCallback(
-    (result: ActionResult) => {
-      notify(
-        result.ok
-          ? { tone: "success", message: result.message }
-          : { tone: "error", message: result.error }
-      );
-      return result.ok;
+  /**
+   * Exécute une Server Action et affiche son résultat.
+   *
+   * Une action peut aussi échouer *avant* de renvoyer quoi que ce soit —
+   * requête rejetée, corps trop volumineux, déploiement remplacé pendant la
+   * session. On le traite comme une erreur affichable plutôt que de laisser
+   * remonter une exception qui ferait tomber toute la page.
+   */
+  const runAction = useCallback(
+    async (action: () => Promise<ActionResult | undefined>) => {
+      try {
+        const result = await action();
+
+        if (!result) {
+          notify({
+            tone: "error",
+            message: "Le serveur n'a pas répondu. Rechargez la page et réessayez.",
+          });
+          return false;
+        }
+
+        notify(
+          result.ok
+            ? { tone: "success", message: result.message }
+            : { tone: "error", message: result.error }
+        );
+        return result.ok;
+      } catch (error) {
+        notify({
+          tone: "error",
+          message:
+            error instanceof Error ? error.message : "Action impossible.",
+        });
+        return false;
+      }
     },
     [notify]
   );
 
-  return { flash, notify, report };
+  return { flash, notify, runAction };
 };
+
+/** Signature partagée par les panneaux du backoffice. */
+export type RunAction = (
+  action: () => Promise<ActionResult | undefined>
+) => Promise<boolean>;

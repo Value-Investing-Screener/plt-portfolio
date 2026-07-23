@@ -23,6 +23,7 @@ import {
   SLOT_STYLE,
   SmallButton,
   UploadButton,
+  type RunAction,
 } from "./shared";
 
 /** Mois courant au format « 2026-07 ». */
@@ -31,13 +32,13 @@ const currentMonth = () => new Date().toISOString().slice(0, 7);
 type PublicationPanelProps = {
   portfolios: PortfolioMeta[];
   publications: Publication[];
-  report: (result: ActionResult) => boolean;
+  runAction: RunAction;
 };
 
 export const PublicationPanel = ({
   portfolios,
   publications,
-  report,
+  runAction,
 }: PublicationPanelProps) => {
   const [month, setMonth] = useState(currentMonth);
 
@@ -90,7 +91,7 @@ export const PublicationPanel = ({
         month={month}
         publication={publication}
         portfolios={portfolios}
-        report={report}
+        runAction={runAction}
       />
     </Panel>
   );
@@ -100,12 +101,12 @@ const MonthForm = ({
   month,
   publication,
   portfolios,
-  report,
+  runAction,
 }: {
   month: string;
   publication: Publication | null;
   portfolios: PortfolioMeta[];
-  report: (result: ActionResult) => boolean;
+  runAction: RunAction;
 }) => {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -143,7 +144,7 @@ const MonthForm = ({
 
   const run = (action: () => Promise<ActionResult>) =>
     startTransition(async () => {
-      if (report(await action())) router.refresh();
+      if (await runAction(action)) router.refresh();
     });
 
   const upload = (portfolioKey: PortfolioKey, file: File) => {

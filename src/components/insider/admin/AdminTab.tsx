@@ -3,10 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import {
-  importPerformanceCsv,
-  type ActionResult,
-} from "@/app/actions/publications";
+import { importPerformanceCsv } from "@/app/actions/publications";
 import { colors, MONO } from "@/design/tokens";
 import type { AnnualReview, MemberRow, Publication } from "@/lib/plt/types";
 import type { PortfolioMeta } from "@/lib/portfolios";
@@ -14,7 +11,7 @@ import { GhostButton, Label, Panel, TabHeader } from "../ui";
 import { AnnualPanel } from "./AnnualPanel";
 import { ContactsPanel } from "./ContactsPanel";
 import { PublicationPanel } from "./PublicationPanel";
-import { INPUT_STYLE, useFlash } from "./shared";
+import { INPUT_STYLE, useFlash, type RunAction } from "./shared";
 
 export type AdminData = {
   portfolios: PortfolioMeta[];
@@ -29,7 +26,7 @@ export type AdminData = {
  * Chaque écriture passe par une Server Action qui revérifie le rôle admin.
  */
 export const AdminTab = ({ data }: { data: AdminData }) => {
-  const { flash, report } = useFlash();
+  const { flash, runAction } = useFlash();
 
   return (
     <div
@@ -82,30 +79,26 @@ export const AdminTab = ({ data }: { data: AdminData }) => {
         <PublicationPanel
           portfolios={data.portfolios}
           publications={data.publications}
-          report={report}
+          runAction={runAction}
         />
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <AnnualPanel reviews={data.annualReviews} report={report} />
-          <BackfillPanel report={report} />
+          <AnnualPanel reviews={data.annualReviews} runAction={runAction} />
+          <BackfillPanel runAction={runAction} />
         </div>
       </div>
 
       <ContactsPanel
         members={data.members}
         currentMemberId={data.currentMemberId}
-        report={report}
+        runAction={runAction}
       />
     </div>
   );
 };
 
 /** Reprise d'historique : import en masse des performances passées. */
-const BackfillPanel = ({
-  report,
-}: {
-  report: (result: ActionResult) => boolean;
-}) => {
+const BackfillPanel = ({ runAction }: { runAction: RunAction }) => {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [csv, setCsv] = useState("");
@@ -152,7 +145,7 @@ const BackfillPanel = ({
         disabled={pending || !csv.trim()}
         onClick={() =>
           startTransition(async () => {
-            if (report(await importPerformanceCsv(csv))) {
+            if (await runAction(() => importPerformanceCsv(csv))) {
               setCsv("");
               router.refresh();
             }

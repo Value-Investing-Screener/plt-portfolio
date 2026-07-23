@@ -39,11 +39,26 @@ export const AllocationTab = ({
   exposures,
   onExposureChange,
 }: AllocationTabProps) => {
-  const { data: hasuraPortfolios, isLoading: portfoliosLoading } =
-    useGetPortofliosQuery();
-  const { data: rates, isLoading: ratesLoading } = useGetConversionsQuery();
+  const {
+    data: hasuraPortfolios,
+    isLoading: portfoliosLoading,
+    error: portfoliosError,
+  } = useGetPortofliosQuery();
+  const {
+    data: rates,
+    isLoading: ratesLoading,
+    error: ratesError,
+  } = useGetConversionsQuery();
 
-  const loading = portfoliosLoading || ratesLoading || !rates;
+  const loading = portfoliosLoading || ratesLoading;
+
+  // Un message concret vaut mieux qu'un « aucune position » trompeur.
+  const failure =
+    portfoliosError instanceof Error
+      ? portfoliosError.message
+      : ratesError instanceof Error
+      ? `Taux de change indisponibles : ${ratesError.message}`
+      : null;
 
   /** Les trois portefeuilles modèles, valorisés pour le capital courant. */
   const valued = useMemo(
@@ -163,6 +178,7 @@ export const AllocationTab = ({
           currency={currency}
           companies={portfolio.companies}
           loading={loading}
+          failure={failure}
         />
       ))}
     </div>

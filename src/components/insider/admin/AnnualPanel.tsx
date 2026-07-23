@@ -21,14 +21,15 @@ import {
   SLOT_STYLE,
   SmallButton,
   UploadButton,
+  type RunAction,
 } from "./shared";
 
 export const AnnualPanel = ({
   reviews,
-  report,
+  runAction,
 }: {
   reviews: AnnualReview[];
-  report: (result: ActionResult) => boolean;
+  runAction: RunAction;
 }) => {
   const [year, setYear] = useState(() => String(new Date().getFullYear()));
 
@@ -77,7 +78,7 @@ export const AnnualPanel = ({
         </div>
       </div>
 
-      <AnnualForm key={year} year={year} review={review} report={report} />
+      <AnnualForm key={year} year={year} review={review} runAction={runAction} />
     </Panel>
   );
 };
@@ -85,11 +86,11 @@ export const AnnualPanel = ({
 const AnnualForm = ({
   year,
   review,
-  report,
+  runAction,
 }: {
   year: string;
   review: AnnualReview | null;
-  report: (result: ActionResult) => boolean;
+  runAction: RunAction;
 }) => {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -105,7 +106,7 @@ const AnnualForm = ({
 
   const run = (action: () => Promise<ActionResult>) =>
     startTransition(async () => {
-      if (report(await action())) router.refresh();
+      if (await runAction(action)) router.refresh();
     });
 
   const upload = (file: File) => {
