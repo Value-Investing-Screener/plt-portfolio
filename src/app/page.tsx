@@ -13,6 +13,13 @@ import {
 /** La session est lue à chaque requête : pas de pré-rendu statique. */
 export const dynamic = "force-dynamic";
 
+/**
+ * Les Server Actions du backoffice s'exécutent dans la fonction de cette page :
+ * l'upload d'un PDF de 25 Mo ou l'import d'un historique demandent plus que le
+ * délai par défaut.
+ */
+export const maxDuration = 60;
+
 export default async function Home() {
   const member = await getCurrentMember();
   if (!member) redirect("/login");

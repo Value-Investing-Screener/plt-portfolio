@@ -5,6 +5,7 @@ import {
   parseMonthKey,
   pct,
   sgn,
+  sgn2,
 } from "@/lib/format";
 import type { PortfolioKey, PortfolioMeta } from "@/lib/portfolios";
 
@@ -96,6 +97,12 @@ const signedCell = (value: number) => ({
   color: value >= 0 ? colors.positive : colors.negative,
 });
 
+/** Deux décimales — utilisé pour le tableau des performances mensuelles. */
+const signedCell2 = (value: number) => ({
+  str: sgn2(value),
+  color: value >= 0 ? colors.positive : colors.negative,
+});
+
 /**
  * Transforme les performances mensuelles saisies au backoffice en tout ce
  * qu'affiche l'onglet Performances : courbes, tableau mensuel, barres par
@@ -176,7 +183,7 @@ export const buildPerformance = (
     .map((entry) => ({
       label: monthLabelShort(entry.month),
       cells: portfolios.map((portfolio) =>
-        signedCell((entry.returns[portfolio.key] ?? 0) / 100)
+        signedCell2((entry.returns[portfolio.key] ?? 0) / 100)
       ),
     }))
     .reverse();

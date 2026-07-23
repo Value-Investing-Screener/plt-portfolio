@@ -251,6 +251,10 @@ export const publishMonth = async (
  * L'en-tête est facultatif. Les mois importés sont publiés directement : ils
  * n'ont ni rapport ni replay, seulement des performances, ce qui suffit à
  * reconstituer les courbes.
+ *
+ * Tout est traité en lots : un backfill de trente mois tient en quatre
+ * allers-retours. Une boucle mois par mois dépasserait le délai d'exécution
+ * de la fonction (504).
  */
 export const importPerformanceCsv = async (
   csv: string
@@ -261,7 +265,8 @@ export const importPerformanceCsv = async (
       .map((line) => line.trim())
       .filter(Boolean)
       .map((line) => line.split(/[,;\t]/).map((cell) => cell.trim()))
-      .filter((cells) => MONTH_PATTERN.test(cells[0]));
+      .filter((cells) => MONTH_PATTERN.test(cells[0]))
+      .map(([month, ...values]) => ({ month, values }));
 
     if (!rows.length) {
       return {
@@ -272,39 +277,77 @@ export const importPerformanceCsv = async (
     }
 
     const supabase = createSupabaseAdminClient();
-    let imported = 0;
+    const toDateColumn = (month: string) => `${month}-01`;
+    const toMonthKey = (value: string) => value.slice(0, 7);
 
-    for (const cells of rows) {
-      const [month, ...values] = cells;
-      const publicationId = await ensurePublication(month);
+    // 1. Publications déjà présentes.
+    const { data: existing, error: selectError } = await supabase
+      .from("plt_publication")
+      .select("id, month")
+      .in("month", rows.map((row) => toDateColumn(row.month)));
 
-      const perfs = PORTFOLIO_KEYS.map((key, index) => ({
+    if (selectError) return { ok: false as const, error: selectError.message };
+
+    const idByMonth = new Map<string, string>(
+      (existing ?? []).map((row) => [toMonthKey(row.month), row.id])
+    );
+
+    // 2. Création des mois manquants, en une seule insertion.
+    const missing = rows
+      .filter((row) => !idByMonth.has(row.month))
+      .map((row) => ({ month: toDateColumn(row.month) }));
+
+    if (missing.length) {
+      const { data: created, error } = await supabase
+        .from("plt_publication")
+        .insert(missing)
+        .select("id, month");
+
+      if (error) return { ok: false as const, error: error.message };
+      created?.forEach((row) => idByMonth.set(toMonthKey(row.month), row.id));
+    }
+
+    // 3. Toutes les performances en une seule écriture.
+    const perfs = rows.flatMap((row) => {
+      const publicationId = idByMonth.get(row.month);
+      if (!publicationId) return [];
+
+      return PORTFOLIO_KEYS.map((key, index) => ({
         publication_id: publicationId,
         portfolio_key: key,
         // La virgule décimale est acceptée : les tableurs français l'exportent.
-        return_pct: Number(String(values[index] ?? "").replace(",", ".")),
-      })).filter((row) => Number.isFinite(row.return_pct));
+        return_pct: Number(String(row.values[index] ?? "").replace(",", ".")),
+      })).filter((perf) => Number.isFinite(perf.return_pct));
+    });
 
-      if (!perfs.length) continue;
-
-      const { error } = await supabase
-        .from("plt_publication_perf")
-        .upsert(perfs);
-      if (error) return { ok: false as const, error: error.message };
-
-      await supabase
-        .from("plt_publication")
-        .update({ published_at: new Date().toISOString() })
-        .eq("id", publicationId)
-        .is("published_at", null);
-
-      imported += 1;
+    if (!perfs.length) {
+      return {
+        ok: false as const,
+        error: "Aucune valeur numérique trouvée dans les colonnes de performance.",
+      };
     }
+
+    const { error: perfError } = await supabase
+      .from("plt_publication_perf")
+      .upsert(perfs);
+
+    if (perfError) return { ok: false as const, error: perfError.message };
+
+    // 4. Publication des mois concernés qui étaient encore en brouillon.
+    const touched = Array.from(new Set(perfs.map((perf) => perf.publication_id)));
+
+    const { error: publishError } = await supabase
+      .from("plt_publication")
+      .update({ published_at: new Date().toISOString() })
+      .in("id", touched)
+      .is("published_at", null);
+
+    if (publishError) return { ok: false as const, error: publishError.message };
 
     revalidatePath("/");
     return {
       ok: true as const,
-      message: `${imported} mois importé${imported > 1 ? "s" : ""}.`,
+      message: `${touched.length} mois importé${touched.length > 1 ? "s" : ""}.`,
     };
   });
 

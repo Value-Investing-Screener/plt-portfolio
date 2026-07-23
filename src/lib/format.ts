@@ -69,9 +69,22 @@ export const pct = (n: number) =>
       }) + " %"
     : "—";
 
+/** Pourcentage à deux décimales — « 12,45 % ». */
+export const pct2 = (n: number) =>
+  isNum(n)
+    ? n.toLocaleString(FR, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) + " %"
+    : "—";
+
 /** Pourcentage signé à partir d'un ratio — 0.124 → « +12,4 % ». */
 export const sgn = (ratio: number) =>
   isNum(ratio) ? (ratio >= 0 ? "+" : "") + pct(ratio * 100) : "—";
+
+/** Idem, à deux décimales — les performances mensuelles sont trop fines pour une. */
+export const sgn2 = (ratio: number) =>
+  isNum(ratio) ? (ratio >= 0 ? "+" : "") + pct2(ratio * 100) : "—";
 
 /** Montant + symbole de la devise de référence. */
 export const money = (n: number, currency: string) =>
