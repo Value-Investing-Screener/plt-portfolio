@@ -1,30 +1,24 @@
-"use client";
-import { PortfolioConfig } from "@/components/portfolio-config/PortfolioConfig";
-import { Tabs } from "@/components/tabs";
-import { useGetPortofliosQuery } from "../api/useGetPortfolios";
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-export default function Config() {
-  const { data: portfolios = [] } = useGetPortofliosQuery();
+import { ConfigView } from "@/components/insider/config/ConfigView";
+import { getCurrentMember } from "@/lib/auth";
+import { getPortfolios } from "@/lib/plt/queries";
 
-  return (
-    <Tabs
-      tabContents={[
-        {
-          label: "Portefeuille Efficient",
-          index: 0,
-          children: <PortfolioConfig companies={portfolios[0]?.companies || []} />,
-        },
-        {
-          label: "Portefeuille Dividende",
-          index: 1,
-          children: <PortfolioConfig companies={portfolios[1]?.companies || []} />,
-        },
-        {
-          label: "Portefeuille Antifragile",
-          index: 2,
-          children: <PortfolioConfig companies={portfolios[2]?.companies || []} />,
-        },
-      ]}
-    />
-  );
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Composition des portefeuilles · PLT Insider",
+};
+
+/** Vue de contrôle des portefeuilles modèles — réservée aux administrateurs. */
+export default async function ConfigPage() {
+  const member = await getCurrentMember();
+
+  if (!member) redirect("/login");
+  if (member.role !== "admin") redirect("/");
+
+  const portfolios = await getPortfolios();
+
+  return <ConfigView member={member} portfolios={portfolios} />;
 }

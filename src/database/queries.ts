@@ -18,8 +18,8 @@ export const getCompaniesByTickersQuery = /* GraphQL */ `
 `;
 
 export const getPortfoliosQuery = /* GraphQL */ `
-  query GetPortfolio {
-    portfolio(where: { userEmail: { _eq: "seminaireplt@gmail.com" } }) {
+  query GetPortfolio($ownerEmail: String!) {
+    portfolio(where: { userEmail: { _eq: $ownerEmail } }) {
       id
       name
       portfolioAllocations {

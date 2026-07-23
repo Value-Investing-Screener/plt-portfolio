@@ -1,16 +1,13 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "react-query";
-import { ThemeProvider } from "@mui/material";
-import React from "react";
-import { theme } from "@/theme";
+import React, { useState } from "react";
 
 export const ClientLayout = ({ children }: { children: React.ReactNode }) => {
-  const queryClient = new QueryClient();
+  // Une seule instance pour toute la durée de vie de l'application.
+  const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>{children}</ThemeProvider>
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
