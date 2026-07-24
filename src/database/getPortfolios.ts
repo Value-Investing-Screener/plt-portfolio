@@ -33,6 +33,13 @@ export type Portfolio = {
 /**
  * Dernier cours coté, via EODHD. Un cours nul signifie « pas de cotation »
  * (cas du cash) : la quantité de titres s'affiche alors « — ».
+ *
+ * Trois garde-fous pour ne jamais bloquer le rendu de la page (une réponse
+ * lente à EODHD faisait expirer les Server Actions — 504) :
+ *  - `from` limite le téléchargement aux ~2 dernières semaines (~1 Ko au lieu
+ *    de 570 Ko d'historique complet) ;
+ *  - `AbortSignal.timeout` coupe au bout de 8 s ;
+ *  - `next.revalidate` met le cours en cache 1 h, partagé entre tous les rendus.
  */
 const getStockPrice = async (ticker: string) => {
   const token = process.env.EODHD_API_TOKEN;
@@ -41,15 +48,23 @@ const getStockPrice = async (ticker: string) => {
     return 0;
   }
 
+  const from = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
   try {
     const response = await fetch(
-      `https://eodhd.com/api/eod/${ticker}?api_token=${token}&fmt=json`
+      `https://eodhd.com/api/eod/${ticker}?api_token=${token}&from=${from}&fmt=json`,
+      { signal: AbortSignal.timeout(8000), next: { revalidate: 3600 } }
     );
+    if (!response.ok) return 0;
+
     const prices = (await response.json()) as {
       [key: string]: number | string;
     }[];
     return (maxBy(prices, "date")?.adjusted_close as number) ?? 0;
   } catch {
+    // Timeout, réseau, rate-limit : on affiche « — » plutôt que de bloquer.
     return 0;
   }
 };
