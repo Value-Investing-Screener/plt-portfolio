@@ -56,7 +56,23 @@
       "Bash(pkill -f \"vercel whoami\")",
       "Bash(curl -sS -A 'Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36' 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap' -o /private/tmp/claude-501/-Users-estellejacot-Documents-me-CodingCapital-plt-portfolio/6a801b72-dd96-4087-b613-01a301796cbe/scratchpad/sans.css)",
       "Bash(curl -sS -A 'Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36' 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap' -o /private/tmp/claude-501/-Users-estellejacot-Documents-me-CodingCapital-plt-portfolio/6a801b72-dd96-4087-b613-01a301796cbe/scratchpad/mono.css)",
-      "Bash(grep -rho '.\\\\{0,60\\\\}Session expirée.\\\\{0,20\\\\}' .next/static/chunks)"
+      "Bash(grep -rho '.\\\\{0,60\\\\}Session expirée.\\\\{0,20\\\\}' .next/static/chunks)",
+      "Bash(awk '{print substr\\($1,1,7\\)}')",
+      "Bash(curl -s -o /dev/null -w \"home:%{http_code} redirect:%{redirect_url}\\\\n\" https://plt-portfolio.vercel.app/)",
+      "Bash(curl -sI https://plt-portfolio.vercel.app/login)",
+      "Bash(curl -s https://plt-portfolio.vercel.app/login)",
+      "Bash(grep -oE \"[a-f0-9]{16,}-s\\\\.p\\\\.woff2|\\\\.woff2\")",
+      "Bash(git show *)",
+      "Bash(rm -f /tmp/pub7.ts /tmp/pubb.ts /tmp/pg7.ts /tmp/lay7.ts)",
+      "Bash(git reset *)",
+      "Bash(git commit -q -m 'perf: borne et met en cache les cours EODHD \\(payload réduit, timeout 8s, cache 1h\\) *)",
+      "Bash(sed -i '' 's|${siteUrl\\(\\)}/auth/confirm|${getSiteUrl\\(\\)}/auth/confirm|g' src/app/actions/members.ts)",
+      "Bash(sed -i '' 's|import { requireAdmin } from \"@/lib/auth\";|import { requireAdmin } from \"@/lib/auth\";\\\\nimport { getSiteUrl } from \"@/lib/siteUrl\";|' src/app/actions/members.ts)",
+      "Bash(git commit -q -m 'fix: dérive l'\\\\''URL des liens e-mail de la requête, pas de NEXT_PUBLIC_SITE_URL *)",
+      "Bash(curl -s http://localhost:3002/auth/set-password?token=__CMDSUB_OUTPUT__)",
+      "Bash(curl -s \"http://localhost:3002/auth/set-password\")",
+      "Bash(curl -s \"http://localhost:3002/auth/set-password?token=00000000-0000-0000-0000-000000000000\")",
+      "Bash(git commit -q -m 'feat\\(backoffice\\): lien de mot de passe copiable \\(48h, usage unique\\) + changement de rôle *)"
     ]
   }
 }

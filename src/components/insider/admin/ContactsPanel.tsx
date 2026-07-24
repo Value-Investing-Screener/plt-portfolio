@@ -6,14 +6,19 @@ import { useState, useTransition } from "react";
 import {
   deleteMember,
   inviteMember,
-  sendPasswordReset,
   setMemberActive,
+  setMemberRole,
 } from "@/app/actions/members";
+import {
+  createPasswordResetLink,
+  type ResetLink,
+} from "@/app/actions/passwordReset";
 import type { ActionResult } from "@/app/actions/publications";
 import { colors, MONO } from "@/design/tokens";
 import type { MemberRow } from "@/lib/plt/types";
 import { EmptyState, Label, Panel, PrimaryButton } from "../ui";
-import { INPUT_STYLE, SmallButton, type RunAction } from "./shared";
+import { ResetLinkModal } from "./ResetLinkModal";
+import { INPUT_STYLE, SmallButton, type Flash, type RunAction } from "./shared";
 
 const GRID = "1.4fr 1.8fr 0.9fr auto";
 
@@ -30,20 +35,41 @@ export const ContactsPanel = ({
   members,
   currentMemberId,
   runAction,
+  notify,
 }: {
   members: MemberRow[];
   currentMemberId: string;
   runAction: RunAction;
+  notify: (flash: NonNullable<Flash>) => void;
 }) => {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [draft, setDraft] = useState({ name: "", email: "" });
+
+  // Lien de mot de passe affiché dans une modale (généré à la demande).
+  const [resetLink, setResetLink] = useState<{
+    memberName: string;
+    link: ResetLink;
+  } | null>(null);
 
   const run = (action: () => Promise<ActionResult>, onDone?: () => void) =>
     startTransition(async () => {
       if (await runAction(action)) {
         onDone?.();
         router.refresh();
+      }
+    });
+
+  const generateLink = (member: MemberRow) =>
+    startTransition(async () => {
+      const result = await createPasswordResetLink(member.id);
+      if (result.ok) {
+        setResetLink({
+          memberName: member.fullName || member.email,
+          link: result.link,
+        });
+      } else {
+        notify({ tone: "error", message: result.error });
       }
     });
 
@@ -232,15 +258,47 @@ export const ContactsPanel = ({
               {member.isActive ? "Actif" : "Suspendu"}
             </span>
 
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                justifyContent: "flex-end",
+                flexWrap: "wrap",
+              }}
+            >
               <SmallButton
-                label="Réinit. mot de passe"
-                title="Envoyer un lien de réinitialisation"
+                label="Lien mot de passe"
+                title="Générer un lien de définition du mot de passe à remettre au contact"
                 disabled={pending}
-                onClick={() => run(() => sendPasswordReset(member.email))}
+                onClick={() => generateLink(member)}
                 background="transparent"
                 color={colors.text2}
                 border="rgba(255,255,255,0.14)"
+                className="plt-btn-outline"
+              />
+              <SmallButton
+                label={member.role === "admin" ? "Passer membre" : "Passer admin"}
+                title={
+                  member.role === "admin"
+                    ? "Retirer l'accès au backoffice"
+                    : "Donner accès au backoffice"
+                }
+                disabled={pending || (isSelf && member.role === "admin")}
+                onClick={() =>
+                  run(() =>
+                    setMemberRole(
+                      member.id,
+                      member.role === "admin" ? "user" : "admin"
+                    )
+                  )
+                }
+                background="transparent"
+                color={member.role === "admin" ? colors.text2 : colors.accent}
+                border={
+                  member.role === "admin"
+                    ? "rgba(255,255,255,0.14)"
+                    : "rgba(192,138,78,0.5)"
+                }
                 className="plt-btn-outline"
               />
               <SmallButton
@@ -273,6 +331,14 @@ export const ContactsPanel = ({
           </div>
         );
       })}
+
+      {resetLink && (
+        <ResetLinkModal
+          memberName={resetLink.memberName}
+          link={resetLink.link}
+          onClose={() => setResetLink(null)}
+        />
+      )}
     </Panel>
   );
 };

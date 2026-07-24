@@ -26,7 +26,7 @@ export type AdminData = {
  * Chaque écriture passe par une Server Action qui revérifie le rôle admin.
  */
 export const AdminTab = ({ data }: { data: AdminData }) => {
-  const { flash, runAction } = useFlash();
+  const { flash, notify, runAction } = useFlash();
 
   return (
     <div
@@ -92,6 +92,7 @@ export const AdminTab = ({ data }: { data: AdminData }) => {
         members={data.members}
         currentMemberId={data.currentMemberId}
         runAction={runAction}
+        notify={notify}
       />
     </div>
   );

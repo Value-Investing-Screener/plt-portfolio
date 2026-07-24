@@ -76,24 +76,6 @@ export const inviteMember = async (
     return { ok: true as const, message: `Invitation envoyée à ${address}.` };
   });
 
-export const sendPasswordReset = async (
-  email: string
-): Promise<ActionResult> =>
-  guard(async () => {
-    const supabase = createSupabaseAdminClient();
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${getSiteUrl()}/auth/confirm?next=/auth/reset`,
-    });
-
-    if (error) return { ok: false as const, error: error.message };
-
-    return {
-      ok: true as const,
-      message: `Lien de réinitialisation envoyé à ${email}.`,
-    };
-  });
-
 /**
  * Désactive un accès sans supprimer le compte : l'historique reste lisible et
  * l'accès peut être rétabli. `plt_is_member()` renvoie alors `false`.
