@@ -1,12 +1,5 @@
 import { colors } from "@/design/tokens";
-import {
-  fmt,
-  monthLabelShort,
-  parseMonthKey,
-  pct,
-  sgn,
-  sgn2,
-} from "@/lib/format";
+import { fmt, monthLabelShort, parseMonthKey, sgn, sgn2 } from "@/lib/format";
 import type { PortfolioKey, PortfolioMeta } from "@/lib/portfolios";
 
 /** Capital de référence de la simulation affichée dans l'onglet Performances. */
@@ -281,17 +274,6 @@ export const buildPerformance = (
     {
       label: "Performance annualisée",
       cells: stats.map((s) => signedCell(s.cagr)),
-    },
-    {
-      label: "Volatilité annualisée",
-      cells: stats.map((s) => ({
-        str: pct(s.volatility * 100),
-        color: colors.text2,
-      })),
-    },
-    {
-      label: "Perte maximale",
-      cells: stats.map((s) => ({ str: sgn(s.drawdown), color: colors.negative })),
     },
     {
       label: "Meilleur mois",
