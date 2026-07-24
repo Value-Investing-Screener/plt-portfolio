@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
+import { getSiteUrl } from "@/lib/siteUrl";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ActionResult } from "./publications";
 
@@ -20,7 +21,6 @@ const guard = async <T>(
   }
 };
 
-const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -50,7 +50,7 @@ export const inviteMember = async (
       address,
       {
         data: { full_name: name },
-        redirectTo: `${siteUrl()}/auth/confirm?next=/auth/reset`,
+        redirectTo: `${getSiteUrl()}/auth/confirm?next=/auth/reset`,
       }
     );
 
@@ -83,7 +83,7 @@ export const sendPasswordReset = async (
     const supabase = createSupabaseAdminClient();
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${siteUrl()}/auth/confirm?next=/auth/reset`,
+      redirectTo: `${getSiteUrl()}/auth/confirm?next=/auth/reset`,
     });
 
     if (error) return { ok: false as const, error: error.message };

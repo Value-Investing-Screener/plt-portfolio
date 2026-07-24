@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { getSiteUrl } from "@/lib/siteUrl";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type AuthResult = { error: string } | null;
@@ -61,10 +62,9 @@ export const requestPasswordReset = async (
   email: string
 ): Promise<AuthResult> => {
   const supabase = createSupabaseServerClient();
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/confirm?next=/auth/reset`,
+    redirectTo: `${getSiteUrl()}/auth/confirm?next=/auth/reset`,
   });
 
   if (error) return { error: humanize(error.message) };
