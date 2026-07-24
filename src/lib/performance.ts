@@ -43,6 +43,8 @@ export type PerfSeries = {
   name: string;
   color: string;
   values: number[];
+  /** Coordonnées de chaque point dans le repère du SVG (viewBox 1000×380). */
+  coords: { x: number; y: number }[];
   points: string;
   endX: number;
   endLabelX: number;
@@ -158,14 +160,18 @@ export const buildPerformance = (
     const cagr = Math.pow(end / BASE, 12 / months.length) - 1;
     const endX = px(pointCount - 1);
 
+    const coords = values.map((value, index) => ({
+      x: Number(px(index).toFixed(1)),
+      y: Number(py(value).toFixed(1)),
+    }));
+
     return {
       key: portfolio.key,
       name: portfolio.name,
       color: portfolio.color,
       values,
-      points: values
-        .map((value, index) => `${px(index).toFixed(1)},${py(value).toFixed(1)}`)
-        .join(" "),
+      coords,
+      points: coords.map(({ x, y }) => `${x},${y}`).join(" "),
       endX: Number(endX.toFixed(1)),
       endLabelX: Number((endX + 8).toFixed(1)),
       endY: Number(py(end).toFixed(1)),

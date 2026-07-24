@@ -1,6 +1,7 @@
 import { colors, MONO } from "@/design/tokens";
 import { monthLabelShort } from "@/lib/format";
 import type { Performance } from "@/lib/performance";
+import { PerformanceChart } from "./PerformanceChart";
 import { Dot, EmptyState, Label, Panel, TabHeader } from "./ui";
 
 const METRIC_GRID = "1.6fr 1fr 1fr 1fr";
@@ -238,94 +239,11 @@ export const PerformancesTab = ({
           </div>
         </div>
 
-        <svg
-          viewBox="0 0 1000 380"
-          style={{ width: "100%", height: "auto", display: "block" }}
-          role="img"
-          aria-label="Valeur mensuelle cumulée des portefeuilles"
-        >
-          {chartGeometry.yTicks.map((tick) => (
-            <g key={tick.y}>
-              <line
-                x1={chartGeometry.left}
-                x2={chartGeometry.right}
-                y1={tick.y}
-                y2={tick.y}
-                stroke="rgba(255,255,255,0.05)"
-                strokeWidth={1}
-              />
-              <text
-                x={chartGeometry.left - 8}
-                y={tick.y}
-                textAnchor="end"
-                dy=".32em"
-                fill={colors.muted2}
-                fontFamily="var(--font-mono), monospace"
-                fontSize="10.5"
-              >
-                {tick.label}
-              </text>
-            </g>
-          ))}
-
-          <line
-            x1={chartGeometry.left}
-            x2={chartGeometry.right}
-            y1={chartGeometry.baselineY}
-            y2={chartGeometry.baselineY}
-            stroke="rgba(255,255,255,0.16)"
-            strokeWidth={1}
-            strokeDasharray="4 4"
-          />
-
-          {chartGeometry.xTicks.map((tick) => (
-            <text
-              key={tick.x}
-              x={tick.x}
-              y={360}
-              textAnchor="middle"
-              fill={colors.muted2}
-              fontFamily="var(--font-mono), monospace"
-              fontSize="10.5"
-            >
-              {tick.label}
-            </text>
-          ))}
-
-          {series.map((serie) => (
-            <polyline
-              key={serie.key}
-              points={serie.points}
-              fill="none"
-              stroke={serie.color}
-              strokeWidth={2.2}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
-          ))}
-
-          {series.map((serie) => (
-            <g key={`end-${serie.key}`}>
-              <circle
-                cx={serie.endX}
-                cy={serie.endY}
-                r={3.6}
-                fill={serie.color}
-              />
-              <text
-                x={serie.endLabelX}
-                y={serie.endY}
-                dy=".32em"
-                fill={serie.color}
-                fontFamily="var(--font-mono), monospace"
-                fontSize="11"
-                fontWeight={500}
-              >
-                {serie.endValueShort}
-              </text>
-            </g>
-          ))}
-        </svg>
+        <PerformanceChart
+          series={series}
+          chartGeometry={chartGeometry}
+          monthLabels={performance.monthLabels}
+        />
       </Panel>
 
       <div className="plt-split">
