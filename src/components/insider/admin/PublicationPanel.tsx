@@ -4,16 +4,18 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import {
+  createReportUploadUrl,
   publishMonth,
+  registerReport,
   removeReport,
   savePublication,
   unpublishMonth,
-  uploadReport,
   type ActionResult,
 } from "@/app/actions/publications";
 import { colors, MONO } from "@/design/tokens";
 import { documentMeta, monthLabelLong } from "@/lib/format";
 import type { Publication } from "@/lib/plt/types";
+import { uploadToSignedUrl, validateDocument } from "@/lib/plt/upload";
 import type { PortfolioKey, PortfolioMeta } from "@/lib/portfolios";
 import { GhostButton, PdfBadge, PrimaryButton } from "../ui";
 import {
@@ -129,13 +131,21 @@ const MonthForm = ({
       if (await runAction(action)) router.refresh();
     });
 
-  const upload = (portfolioKey: PortfolioKey, file: File) => {
-    const formData = new FormData();
-    formData.set("month", month);
-    formData.set("portfolioKey", portfolioKey);
-    formData.set("file", file);
-    run(() => uploadReport(formData));
-  };
+  // Transfert direct navigateur → Supabase (URL signée), puis enregistrement.
+  // Toute erreur de chaque étape remonte via runAction (toast d'administration).
+  const upload = (portfolioKey: PortfolioKey, file: File) =>
+    run(async () => {
+      const invalid = validateDocument(file);
+      if (invalid) return { ok: false as const, error: invalid };
+
+      const signed = await createReportUploadUrl(month, portfolioKey);
+      if (!signed.ok) return { ok: false as const, error: signed.error };
+
+      const uploadError = await uploadToSignedUrl(signed.path, signed.token, file);
+      if (uploadError) return { ok: false as const, error: uploadError };
+
+      return registerReport(month, portfolioKey, signed.path);
+    });
 
   return (
     <>

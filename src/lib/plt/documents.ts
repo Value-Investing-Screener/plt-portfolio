@@ -2,39 +2,31 @@ import "server-only";
 
 import { PDFDocument } from "pdf-lib";
 
-/** Bucket privé — voir `supabase/migrations/*_plt_publications.sql`. */
-export const DOCUMENTS_BUCKET = "plt-documents";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { DOCUMENTS_BUCKET } from "./constants";
 
-export const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
-
-export type DocumentUpload = {
-  bytes: Uint8Array;
-  sizeBytes: number;
-  pageCount: number | null;
-};
+export { DOCUMENTS_BUCKET, MAX_DOCUMENT_BYTES, MAX_DOCUMENT_LABEL } from "./constants";
 
 /**
- * Valide un PDF déposé dans le backoffice et en extrait le nombre de pages —
- * affiché tel quel dans l'espace client (« 48 pages · 12,4 Mo »).
+ * Métadonnées d'un document déjà téléversé dans le bucket : sa taille et son
+ * nombre de pages, affichés côté client (« 48 pages · 12,4 Mo »).
+ *
+ * Le fichier est lu depuis le stockage (téléversé directement par le navigateur
+ * pour contourner la limite de corps de requête des fonctions Vercel), donc le
+ * serveur ne l'a jamais eu en mémoire au moment de l'upload.
  */
-export const readPdfUpload = async (
-  file: File | null
-): Promise<{ upload: DocumentUpload } | { error: string }> => {
-  if (!file || file.size === 0) return { error: "Aucun fichier sélectionné." };
+export const readDocumentMeta = async (
+  storagePath: string
+): Promise<{ sizeBytes: number; pageCount: number | null }> => {
+  const supabase = createSupabaseAdminClient();
 
-  if (file.type && file.type !== "application/pdf") {
-    return { error: "Le fichier doit être un PDF." };
-  }
+  const { data, error } = await supabase.storage
+    .from(DOCUMENTS_BUCKET)
+    .download(storagePath);
 
-  if (file.size > MAX_DOCUMENT_BYTES) {
-    return {
-      error: `Le fichier dépasse ${Math.round(
-        MAX_DOCUMENT_BYTES / 1024 / 1024
-      )} Mo.`,
-    };
-  }
+  if (error || !data) return { sizeBytes: 0, pageCount: null };
 
-  const bytes = new Uint8Array(await file.arrayBuffer());
+  const bytes = new Uint8Array(await data.arrayBuffer());
 
   let pageCount: number | null = null;
   try {
@@ -42,9 +34,9 @@ export const readPdfUpload = async (
       await PDFDocument.load(bytes, { updateMetadata: false })
     ).getPageCount();
   } catch {
-    // PDF chiffré ou exotique : on stocke quand même, sans le nombre de pages.
+    // PDF chiffré ou exotique : on garde le fichier, sans le nombre de pages.
     pageCount = null;
   }
 
-  return { upload: { bytes, sizeBytes: file.size, pageCount } };
+  return { sizeBytes: bytes.byteLength, pageCount };
 };

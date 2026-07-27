@@ -45,43 +45,50 @@ export const AdminTab = ({ data }: { data: AdminData }) => {
         overline="Espace administrateur"
         overlineColor={colors.accent}
         title="Backoffice · gestion des publications & accès"
-        aside={
-          flash ? (
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 9,
-                background:
-                  flash.tone === "success"
-                    ? "rgba(111,181,138,0.12)"
-                    : "rgba(217,128,128,0.1)",
-                border: `1px solid ${
-                  flash.tone === "success"
-                    ? "rgba(111,181,138,0.4)"
-                    : "rgba(217,128,128,0.35)"
-                }`,
-                borderRadius: 6,
-                padding: "9px 16px",
-                fontSize: 12.5,
-                color: flash.tone === "success" ? "#8FCBA3" : colors.negative,
-                fontFamily: "var(--font-sans), system-ui, sans-serif",
-              }}
-            >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background:
-                    flash.tone === "success" ? colors.positive : colors.negative,
-                }}
-              />
-              {flash.message}
-            </span>
-          ) : undefined
-        }
       />
+
+      {/* Toast fixe : visible même quand une modale est ouverte (z-index au-dessus). */}
+      {flash && (
+        <div
+          role="status"
+          className="plt-fade"
+          style={{
+            position: "fixed",
+            top: 20,
+            right: "clamp(16px,4vw,40px)",
+            zIndex: 60,
+            display: "flex",
+            alignItems: "center",
+            gap: 9,
+            maxWidth: "min(90vw, 420px)",
+            background:
+              flash.tone === "success" ? "rgba(18,32,26,0.98)" : "rgba(32,20,20,0.98)",
+            border: `1px solid ${
+              flash.tone === "success"
+                ? "rgba(111,181,138,0.5)"
+                : "rgba(217,128,128,0.5)"
+            }`,
+            borderRadius: 8,
+            padding: "12px 16px",
+            fontSize: 13,
+            lineHeight: 1.4,
+            color: flash.tone === "success" ? "#8FCBA3" : "#E5A2A2",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+          }}
+        >
+          <span
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: "50%",
+              flex: "none",
+              background:
+                flash.tone === "success" ? colors.positive : colors.negative,
+            }}
+          />
+          {flash.message}
+        </div>
+      )}
 
       <div className="plt-admin">
         <LauncherCard

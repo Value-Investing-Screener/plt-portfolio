@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
-import { DOCUMENTS_BUCKET, readPdfUpload } from "@/lib/plt/documents";
+import { DOCUMENTS_BUCKET, readDocumentMeta } from "@/lib/plt/documents";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import type { ActionResult } from "./publications";
+import type { ActionResult, UploadUrlResult } from "./publications";
 
 const guard = async <T>(
   run: () => Promise<T>
@@ -76,37 +76,51 @@ export const saveAnnualReview = async (draft: {
     return { ok: true as const, message: "Revue annuelle enregistrée." };
   });
 
-export const uploadAnnualReview = async (
-  formData: FormData
-): Promise<ActionResult> =>
-  guard(async () => {
-    const year = parseYear(String(formData.get("year") ?? ""));
-    if (!year) return { ok: false as const, error: "Exercice invalide." };
-
-    const file = formData.get("file");
-    const read = await readPdfUpload(file instanceof File ? file : null);
-    if ("error" in read) return { ok: false as const, error: read.error };
+/** URL signée pour téléverser la revue directement du navigateur. */
+export const createAnnualUploadUrl = async (
+  yearValue: string | number
+): Promise<UploadUrlResult> => {
+  try {
+    await requireAdmin();
+    const year = parseYear(yearValue);
+    if (!year) return { ok: false, error: "Exercice invalide." };
 
     await ensureAnnualReview(year);
 
-    const supabase = createSupabaseAdminClient();
     const storagePath = `revues-annuelles/${year}.pdf`;
+    const { data, error } = await createSupabaseAdminClient()
+      .storage.from(DOCUMENTS_BUCKET)
+      .createSignedUploadUrl(storagePath, { upsert: true });
 
-    const { error: uploadError } = await supabase.storage
-      .from(DOCUMENTS_BUCKET)
-      .upload(storagePath, read.upload.bytes, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
+    if (error || !data) {
+      return { ok: false, error: error?.message ?? "URL de transfert indisponible." };
+    }
+    return { ok: true, path: data.path, token: data.token };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Action impossible.",
+    };
+  }
+};
 
-    if (uploadError) return { ok: false as const, error: uploadError.message };
+/** Enregistre la revue téléversée (taille + pages lues depuis le stockage). */
+export const registerAnnualReview = async (
+  yearValue: string | number,
+  storagePath: string
+): Promise<ActionResult> =>
+  guard(async () => {
+    const year = parseYear(yearValue);
+    if (!year) return { ok: false as const, error: "Exercice invalide." };
 
-    const { error } = await supabase
+    const meta = await readDocumentMeta(storagePath);
+
+    const { error } = await createSupabaseAdminClient()
       .from("plt_annual_review")
       .update({
         storage_path: storagePath,
-        file_size_bytes: read.upload.sizeBytes,
-        page_count: read.upload.pageCount,
+        file_size_bytes: meta.sizeBytes,
+        page_count: meta.pageCount,
       })
       .eq("year", year);
 

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
-import { DOCUMENTS_BUCKET, readPdfUpload } from "@/lib/plt/documents";
+import { DOCUMENTS_BUCKET, readDocumentMeta } from "@/lib/plt/documents";
 import { fetchVimeoDurationMin } from "@/lib/plt/vimeo";
 import { PORTFOLIO_KEYS, type PortfolioKey } from "@/lib/portfolios";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -58,14 +58,55 @@ const ensurePublication = async (month: string) => {
 /* Rapports PDF                                                        */
 /* ------------------------------------------------------------------ */
 
-export const uploadReport = async (
-  formData: FormData
+export type UploadUrlResult =
+  | { ok: true; path: string; token: string }
+  | { ok: false; error: string };
+
+/**
+ * Prépare le transfert d'un rapport : renvoie une URL signée vers laquelle le
+ * navigateur téléverse directement le PDF (contourne la limite de corps des
+ * fonctions Vercel). Le fichier ne passe jamais par le serveur.
+ */
+export const createReportUploadUrl = async (
+  month: string,
+  portfolioKey: string
+): Promise<UploadUrlResult> => {
+  try {
+    await requireAdmin();
+    if (!MONTH_PATTERN.test(month)) return { ok: false, error: "Mois invalide." };
+    if (!isPortfolioKey(portfolioKey)) {
+      return { ok: false, error: "Portefeuille inconnu." };
+    }
+
+    await ensurePublication(month);
+
+    const storagePath = `publications/${month}/${portfolioKey}.pdf`;
+    const { data, error } = await createSupabaseAdminClient()
+      .storage.from(DOCUMENTS_BUCKET)
+      .createSignedUploadUrl(storagePath, { upsert: true });
+
+    if (error || !data) {
+      return { ok: false, error: error?.message ?? "URL de transfert indisponible." };
+    }
+    return { ok: true, path: data.path, token: data.token };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Action impossible.",
+    };
+  }
+};
+
+/**
+ * Enregistre un rapport déjà téléversé : lit sa taille et son nombre de pages
+ * depuis le stockage, crée la ligne, puis publie le mois.
+ */
+export const registerReport = async (
+  month: string,
+  portfolioKey: string,
+  storagePath: string
 ): Promise<ActionResult> =>
   guard(async () => {
-    const month = String(formData.get("month") ?? "");
-    const portfolioKey = String(formData.get("portfolioKey") ?? "");
-    const file = formData.get("file");
-
     if (!MONTH_PATTERN.test(month)) {
       return { ok: false as const, error: "Mois invalide." };
     }
@@ -73,30 +114,16 @@ export const uploadReport = async (
       return { ok: false as const, error: "Portefeuille inconnu." };
     }
 
-    const read = await readPdfUpload(file instanceof File ? file : null);
-    if ("error" in read) return { ok: false as const, error: read.error };
-
     const supabase = createSupabaseAdminClient();
     const publicationId = await ensurePublication(month);
-    const storagePath = `publications/${month}/${portfolioKey}.pdf`;
-
-    const { error: uploadError } = await supabase.storage
-      .from(DOCUMENTS_BUCKET)
-      .upload(storagePath, read.upload.bytes, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
-
-    if (uploadError) {
-      return { ok: false as const, error: uploadError.message };
-    }
+    const meta = await readDocumentMeta(storagePath);
 
     const { error } = await supabase.from("plt_publication_report").upsert({
       publication_id: publicationId,
       portfolio_key: portfolioKey,
       storage_path: storagePath,
-      file_size_bytes: read.upload.sizeBytes,
-      page_count: read.upload.pageCount,
+      file_size_bytes: meta.sizeBytes,
+      page_count: meta.pageCount,
       uploaded_at: new Date().toISOString(),
     });
 

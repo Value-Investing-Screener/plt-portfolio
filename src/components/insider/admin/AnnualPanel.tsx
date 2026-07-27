@@ -5,15 +5,17 @@ import { useMemo, useState, useTransition } from "react";
 
 import type { ActionResult } from "@/app/actions/publications";
 import {
+  createAnnualUploadUrl,
   publishAnnualReview,
+  registerAnnualReview,
   removeAnnualReviewFile,
   saveAnnualReview,
   unpublishAnnualReview,
-  uploadAnnualReview,
 } from "@/app/actions/annual";
 import { colors, MONO } from "@/design/tokens";
 import { documentMeta } from "@/lib/format";
 import type { AnnualReview } from "@/lib/plt/types";
+import { uploadToSignedUrl, validateDocument } from "@/lib/plt/upload";
 import { GhostButton, PdfBadge, PrimaryButton } from "../ui";
 import {
   fileSlot,
@@ -89,12 +91,20 @@ const AnnualForm = ({
       if (await runAction(action)) router.refresh();
     });
 
-  const upload = (file: File) => {
-    const formData = new FormData();
-    formData.set("year", year);
-    formData.set("file", file);
-    run(() => uploadAnnualReview(formData));
-  };
+  // Transfert direct navigateur → Supabase, puis enregistrement.
+  const upload = (file: File) =>
+    run(async () => {
+      const invalid = validateDocument(file);
+      if (invalid) return { ok: false as const, error: invalid };
+
+      const signed = await createAnnualUploadUrl(year);
+      if (!signed.ok) return { ok: false as const, error: signed.error };
+
+      const uploadError = await uploadToSignedUrl(signed.path, signed.token, file);
+      if (uploadError) return { ok: false as const, error: uploadError };
+
+      return registerAnnualReview(year, signed.path);
+    });
 
   return (
     <>
