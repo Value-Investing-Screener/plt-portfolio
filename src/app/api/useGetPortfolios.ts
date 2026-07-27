@@ -16,7 +16,7 @@ export const useGetPortofliosQuery = (): QueryObserverResult<
       if (!response.ok) {
         throw new Error(
           response.status === 401
-            ? "Session expirée — reconnectez-vous."
+            ? "Session expirée - reconnectez-vous."
             : `Chargement des portefeuilles impossible (${response.status}).`
         );
       }

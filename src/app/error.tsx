@@ -65,7 +65,7 @@ export default function Error({
             color: colors.text3,
           }}
         >
-          L&apos;affichage a été interrompu. Vos données ne sont pas affectées —
+          L&apos;affichage a été interrompu. Vos données ne sont pas affectées -
           réessayez, ou rechargez la page.
         </p>
 

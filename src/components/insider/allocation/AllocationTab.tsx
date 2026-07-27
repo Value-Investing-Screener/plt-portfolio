@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+"use client";
+
+import { useMemo, useState } from "react";
 
 import { useGetConversionsQuery } from "@/app/api/useGetConversion";
 import { useGetPortofliosQuery } from "@/app/api/useGetPortfolios";
@@ -22,23 +24,23 @@ export type Exposures = Record<PortfolioKey, number>;
 type AllocationTabProps = {
   /** Portefeuilles modèles (nom, tagline, couleur) — table `plt_portfolio`. */
   portfolios: PortfolioMeta[];
-  capital: number;
-  onCapitalChange: (capital: number) => void;
-  currency: string;
-  onCurrencyChange: (currency: string) => void;
-  exposures: Exposures;
-  onExposureChange: (key: PortfolioKey, value: number) => void;
 };
 
-export const AllocationTab = ({
-  portfolios,
-  capital,
-  onCapitalChange,
-  currency,
-  onCurrencyChange,
-  exposures,
-  onExposureChange,
-}: AllocationTabProps) => {
+export const AllocationTab = ({ portfolios }: AllocationTabProps) => {
+  // Réglages de simulation — locaux à cette page.
+  const [capital, setCapital] = useState(100000);
+  const [currency, setCurrency] = useState("EUR");
+  const [exposures, setExposures] = useState<Exposures>({
+    efficient: 40,
+    dividende: 35,
+    antifragile: 25,
+  });
+  const onCapitalChange = setCapital;
+  const onCurrencyChange = setCurrency;
+  const onExposureChange = (key: PortfolioKey, value: number) =>
+    setExposures((current) => ({ ...current, [key]: value }));
+
+
   const {
     data: hasuraPortfolios,
     isLoading: portfoliosLoading,

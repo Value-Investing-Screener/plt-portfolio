@@ -226,7 +226,7 @@ export const PortfolioSection = ({
                       color: colors.text2,
                     }}
                   >
-                    {company.stockPrice > 0 ? fmt2(company.stockPrice) : "—"}
+                    {company.stockPrice > 0 ? fmt2(company.stockPrice) : "-"}
                   </span>
                   <span
                     style={{

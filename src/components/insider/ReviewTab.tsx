@@ -139,7 +139,7 @@ export const ReviewTab = ({ publications, portfolios }: ReviewTabProps) => (
                       lineHeight: 1.3,
                     }}
                   >
-                    Rapport — {portfolio.name}
+                    Rapport - {portfolio.name}
                   </div>
                   <div
                     style={{
@@ -216,7 +216,7 @@ export const ReviewTab = ({ publications, portfolios }: ReviewTabProps) => (
                       lineHeight: 1.3,
                     }}
                   >
-                    Replay — Point mensuel PLT Insider
+                    Replay - Point mensuel PLT Insider
                   </div>
                   <div
                     style={{

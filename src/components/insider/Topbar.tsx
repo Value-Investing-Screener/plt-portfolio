@@ -62,7 +62,7 @@ export const Topbar = ({ member }: { member?: Member | null }) => (
             lineHeight: 1,
           }}
         >
-          PLT Insider — Capital Allocation Mastermind
+          PLT Insider - Capital Allocation Mastermind
         </h1>
       </div>
     </div>

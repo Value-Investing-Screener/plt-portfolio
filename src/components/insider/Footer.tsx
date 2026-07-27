@@ -49,6 +49,6 @@ export const Footer = ({ onOpenCgv }: { onOpenCgv: () => void }) => (
         investissement personnalisé.
       </span>
     </div>
-    <div>© 2026 Parlons Long Terme — Espace membres PLT Insider</div>
+    <div>© 2026 Parlons Long Terme - Espace membres PLT Insider</div>
   </footer>
 );

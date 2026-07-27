@@ -189,7 +189,7 @@ export const ResetLinkModal = ({
                 flex: "none",
               }}
             />
-            Valable {link.validityHours} h — jusqu&apos;au{" "}
+            Valable {link.validityHours} h - jusqu&apos;au{" "}
             {formatDeadline(link.expiresAt)}. Usage unique.
           </div>
         </div>

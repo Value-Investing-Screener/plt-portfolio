@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -33,12 +35,15 @@ const warnOnce = () => {
   if (warned) return;
   warned = true;
   console.warn(
-    "[PLT] Supabase n'est pas configuré — authentification désactivée (développement uniquement)."
+    "[PLT] Supabase n'est pas configuré - authentification désactivée (développement uniquement)."
   );
 };
 
-/** Membre connecté, ou `null` si la session est absente / le compte désactivé. */
-export const getCurrentMember = async (): Promise<Member | null> => {
+/**
+ * Membre connecté, ou `null` si la session est absente / le compte désactivé.
+ * Mis en cache par requête (`cache`) : layout et page le lisent sans doublon.
+ */
+export const getCurrentMember = cache(async (): Promise<Member | null> => {
   if (!isSupabaseConfigured()) {
     if (process.env.NODE_ENV === "production") return null;
     warnOnce();
@@ -69,7 +74,7 @@ export const getCurrentMember = async (): Promise<Member | null> => {
     role: data.role === "admin" ? "admin" : "user",
     isActive: data.is_active,
   };
-};
+});
 
 /** Membre connecté, sinon erreur — pour les Server Actions. */
 export const requireMember = async (): Promise<Member> => {

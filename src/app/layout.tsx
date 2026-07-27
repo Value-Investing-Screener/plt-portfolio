@@ -30,7 +30,7 @@ const plexMono = localFont({
 export const metadata: Metadata = {
   title: "PLT Insider · Espace client",
   description:
-    "Espace client PLT Insider — allocation, performances et comptes rendus des portefeuilles Parlons Long Terme.",
+    "Espace client PLT Insider - allocation, performances et comptes rendus des portefeuilles Parlons Long Terme.",
 };
 
 export default function RootLayout({

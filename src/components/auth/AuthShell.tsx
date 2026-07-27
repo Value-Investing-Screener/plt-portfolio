@@ -62,7 +62,7 @@ export const AuthShell = ({
               marginTop: 5,
             }}
           >
-            PLT Insider
+            PLT Insider - Capital Allocation Mastermind
           </div>
         </div>
         <span style={{ marginLeft: "auto" }}>

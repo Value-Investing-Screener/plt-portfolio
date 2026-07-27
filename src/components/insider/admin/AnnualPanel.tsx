@@ -232,7 +232,7 @@ const AnnualForm = ({
         >
           {published
             ? "En ligne · une revue sans fichier s'affiche « en préparation »"
-            : "Brouillon — invisible côté client"}
+            : "Brouillon - invisible côté client"}
         </div>
       </div>
     </>

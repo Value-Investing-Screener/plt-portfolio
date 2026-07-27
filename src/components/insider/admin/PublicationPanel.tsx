@@ -176,7 +176,7 @@ const MonthForm = ({
                       fontWeight: 600,
                     }}
                   >
-                    Rapport — {portfolio.name}
+                    Rapport - {portfolio.name}
                   </div>
                   <div
                     style={{
@@ -407,7 +407,7 @@ const MonthForm = ({
             ? `En ligne depuis le ${new Date(
                 publication!.publishedAt!
               ).toLocaleDateString("fr-FR")}`
-            : "Brouillon — invisible côté client"}
+            : "Brouillon - invisible côté client"}
         </div>
       </div>
     </>

@@ -155,7 +155,7 @@ export const ContactsPanel = ({
       </div>
 
       {members.length === 0 && (
-        <EmptyState>Aucun contact — invitez un premier client.</EmptyState>
+        <EmptyState>Aucun contact - invitez un premier client.</EmptyState>
       )}
 
       {members.map((member) => {
@@ -214,7 +214,7 @@ export const ContactsPanel = ({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {member.fullName || "—"}
+                  {member.fullName || "-"}
                 </span>
                 {member.role === "admin" && (
                   <Label size={9} spacing=".14em" color={colors.accent}>

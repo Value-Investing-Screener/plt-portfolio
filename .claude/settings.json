@@ -72,7 +72,18 @@
       "Bash(curl -s http://localhost:3002/auth/set-password?token=__CMDSUB_OUTPUT__)",
       "Bash(curl -s \"http://localhost:3002/auth/set-password\")",
       "Bash(curl -s \"http://localhost:3002/auth/set-password?token=00000000-0000-0000-0000-000000000000\")",
-      "Bash(git commit -q -m 'feat\\(backoffice\\): lien de mot de passe copiable \\(48h, usage unique\\) + changement de rôle *)"
+      "Bash(git commit -q -m 'feat\\(backoffice\\): lien de mot de passe copiable \\(48h, usage unique\\) + changement de rôle *)",
+      "Bash(pkill -f \"next start\")",
+      "Bash(git commit -q -m 'feat\\(graphiques\\): infobulle au survol + retire volatilité/perte max *)",
+      "Bash(git restore *)",
+      "WebFetch(domain:vimeo.com)",
+      "Bash(node --check scripts/import-reviews.mjs)",
+      "Bash(curl -s \"https://vimeo.com/api/oembed.json?url=https://vimeo.com/76979871\")",
+      "Bash(node -e 'const d=JSON.parse\\(require\\(\"fs\"\\).readFileSync\\(0\\)\\);console.log\\(\"titre:\",d.title\\);console.log\\(\"durée \\(s\\):\",d.duration,\"→\",Math.round\\(d.duration/60\\),\"min\"\\);')",
+      "Bash(node scripts/import-reviews.mjs --dry \"/Users/estellejacot/Downloads/Rapport 2024\" \"/Users/estellejacot/Downloads/Rapports 2025\" \"/Users/estellejacot/Downloads/Rapport 2026\")",
+      "Bash(node scripts/import-reviews.mjs \"/Users/estellejacot/Downloads/Rapport 2024\" \"/Users/estellejacot/Downloads/Rapports 2025\" \"/Users/estellejacot/Downloads/Rapport 2026\")",
+      "Bash(rm -rf /tmp/plt-nav)",
+      "Bash(node ./nav.mjs)"
     ]
   }
 }
