@@ -10,7 +10,7 @@ import { Label, Panel, PrimaryButton, TabHeader } from "../ui";
 import { AdminModal } from "./AdminModal";
 import { AnnualPanel } from "./AnnualPanel";
 import { ContactsPanel } from "./ContactsPanel";
-import { PublicationPanel } from "./PublicationPanel";
+import { PublicationPanel } from "./publication/PublicationPanel";
 import { useFlash } from "./shared";
 
 export type AdminData = {
@@ -128,6 +128,9 @@ export const AdminTab = ({ data }: { data: AdminData }) => {
             portfolios={data.portfolios}
             publications={data.publications}
             runAction={runAction}
+            recipientCount={
+              data.members.filter((member) => member.isActive).length
+            }
           />
         </AdminModal>
       )}

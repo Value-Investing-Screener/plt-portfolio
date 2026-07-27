@@ -83,7 +83,9 @@
       "Bash(node scripts/import-reviews.mjs --dry \"/Users/estellejacot/Downloads/Rapport 2024\" \"/Users/estellejacot/Downloads/Rapports 2025\" \"/Users/estellejacot/Downloads/Rapport 2026\")",
       "Bash(node scripts/import-reviews.mjs \"/Users/estellejacot/Downloads/Rapport 2024\" \"/Users/estellejacot/Downloads/Rapports 2025\" \"/Users/estellejacot/Downloads/Rapport 2026\")",
       "Bash(rm -rf /tmp/plt-nav)",
-      "Bash(node ./nav.mjs)"
+      "Bash(node ./nav.mjs)",
+      "Bash(rm -rf /tmp/plt-mail3)",
+      "Bash(node ./mail2.mjs)"
     ]
   }
 }
