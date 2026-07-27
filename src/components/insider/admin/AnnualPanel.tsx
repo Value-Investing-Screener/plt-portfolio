@@ -14,7 +14,7 @@ import {
 import { colors, MONO } from "@/design/tokens";
 import { documentMeta } from "@/lib/format";
 import type { AnnualReview } from "@/lib/plt/types";
-import { GhostButton, Label, Panel, PdfBadge, PrimaryButton } from "../ui";
+import { GhostButton, PdfBadge, PrimaryButton } from "../ui";
 import {
   fileSlot,
   INPUT_STYLE,
@@ -39,47 +39,27 @@ export const AnnualPanel = ({
   );
 
   return (
-    <Panel
-      style={{
-        padding: "24px clamp(18px,3vw,28px)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <Label size={10.5} spacing=".16em">
-          Revue annuelle
-        </Label>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <label
-            htmlFor="plt-annual-year"
-            style={{ fontSize: 11, color: colors.muted }}
-          >
-            Exercice
-          </label>
-          <input
-            id="plt-annual-year"
-            type="number"
-            min={2000}
-            max={2100}
-            value={year}
-            onChange={(event) => setYear(event.target.value)}
-            style={{ ...INPUT_STYLE, width: 90, fontSize: 13 }}
-          />
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <label
+          htmlFor="plt-annual-year"
+          style={{ fontSize: 11, color: colors.muted }}
+        >
+          Exercice
+        </label>
+        <input
+          id="plt-annual-year"
+          type="number"
+          min={2000}
+          max={2100}
+          value={year}
+          onChange={(event) => setYear(event.target.value)}
+          style={{ ...INPUT_STYLE, width: 90, fontSize: 13 }}
+        />
       </div>
 
       <AnnualForm key={year} year={year} review={review} runAction={runAction} />
-    </Panel>
+    </div>
   );
 };
 

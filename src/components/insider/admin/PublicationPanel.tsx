@@ -15,7 +15,7 @@ import { colors, MONO } from "@/design/tokens";
 import { documentMeta, monthLabelLong } from "@/lib/format";
 import type { Publication } from "@/lib/plt/types";
 import type { PortfolioKey, PortfolioMeta } from "@/lib/portfolios";
-import { GhostButton, Label, Panel, PdfBadge, PrimaryButton } from "../ui";
+import { GhostButton, PdfBadge, PrimaryButton } from "../ui";
 import {
   AdminSectionLabel,
   fileSlot,
@@ -48,41 +48,27 @@ export const PublicationPanel = ({
   );
 
   return (
-    <Panel
-      style={{
-        padding: "24px clamp(18px,3vw,28px)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 20,
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
           alignItems: "center",
-          gap: 12,
-          flexWrap: "wrap",
+          gap: 8,
         }}
       >
-        <Label size={10.5} spacing=".16em">
-          Publication mensuelle
-        </Label>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <label
-            htmlFor="plt-admin-month"
-            style={{ fontSize: 11, color: colors.muted }}
-          >
-            Mois
-          </label>
-          <input
-            id="plt-admin-month"
-            type="month"
-            value={month}
-            onChange={(event) => setMonth(event.target.value)}
-            style={INPUT_STYLE}
-          />
-        </div>
+        <label
+          htmlFor="plt-admin-month"
+          style={{ fontSize: 11, color: colors.muted }}
+        >
+          Mois
+        </label>
+        <input
+          id="plt-admin-month"
+          type="month"
+          value={month}
+          onChange={(event) => setMonth(event.target.value)}
+          style={INPUT_STYLE}
+        />
       </div>
 
       {/* Le formulaire est remonté à zéro quand on change de mois. */}
@@ -93,7 +79,7 @@ export const PublicationPanel = ({
         portfolios={portfolios}
         runAction={runAction}
       />
-    </Panel>
+    </div>
   );
 };
 
