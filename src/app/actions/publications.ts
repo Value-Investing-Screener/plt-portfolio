@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
 import { DOCUMENTS_BUCKET, readPdfUpload } from "@/lib/plt/documents";
+import { fetchVimeoDurationMin } from "@/lib/plt/vimeo";
 import { PORTFOLIO_KEYS, type PortfolioKey } from "@/lib/portfolios";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -141,7 +142,6 @@ export type PublicationDraft = {
   month: string;
   hasAlert: boolean;
   replayUrl: string | null;
-  replayDurationMin: number | null;
   returns: Partial<Record<PortfolioKey, number | null>>;
 };
 
@@ -156,12 +156,18 @@ export const savePublication = async (
     const supabase = createSupabaseAdminClient();
     const publicationId = await ensurePublication(draft.month);
 
+    // La durée du replay est déduite du lien Vimeo — plus de saisie manuelle.
+    const replayUrl = draft.replayUrl?.trim() || null;
+    const replayDurationMin = replayUrl
+      ? await fetchVimeoDurationMin(replayUrl)
+      : null;
+
     const { error } = await supabase
       .from("plt_publication")
       .update({
         has_alert: draft.hasAlert,
-        replay_url: draft.replayUrl?.trim() || null,
-        replay_duration_min: draft.replayDurationMin ?? null,
+        replay_url: replayUrl,
+        replay_duration_min: replayDurationMin,
       })
       .eq("id", publicationId);
 
@@ -236,119 +242,6 @@ export const publishMonth = async (
 
     revalidatePath("/");
     return { ok: true as const, message: `Publication de ${draft.month} en ligne.` };
-  });
-
-/* ------------------------------------------------------------------ */
-/* Reprise d'historique                                                */
-/* ------------------------------------------------------------------ */
-
-/**
- * Import CSV des performances passées — une ligne par mois :
- *
- *     mois,efficient,dividende,antifragile
- *     2024-01,2.10,1.05,0.80
- *
- * L'en-tête est facultatif. Les mois importés sont publiés directement : ils
- * n'ont ni rapport ni replay, seulement des performances, ce qui suffit à
- * reconstituer les courbes.
- *
- * Tout est traité en lots : un backfill de trente mois tient en quatre
- * allers-retours. Une boucle mois par mois dépasserait le délai d'exécution
- * de la fonction (504).
- */
-export const importPerformanceCsv = async (
-  csv: string
-): Promise<ActionResult> =>
-  guard(async () => {
-    const rows = csv
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => line.split(/[,;\t]/).map((cell) => cell.trim()))
-      .filter((cells) => MONTH_PATTERN.test(cells[0]))
-      .map(([month, ...values]) => ({ month, values }));
-
-    if (!rows.length) {
-      return {
-        ok: false as const,
-        error:
-          "Aucune ligne exploitable. Format attendu : mois,efficient,dividende,antifragile",
-      };
-    }
-
-    const supabase = createSupabaseAdminClient();
-    const toDateColumn = (month: string) => `${month}-01`;
-    const toMonthKey = (value: string) => value.slice(0, 7);
-
-    // 1. Publications déjà présentes.
-    const { data: existing, error: selectError } = await supabase
-      .from("plt_publication")
-      .select("id, month")
-      .in("month", rows.map((row) => toDateColumn(row.month)));
-
-    if (selectError) return { ok: false as const, error: selectError.message };
-
-    const idByMonth = new Map<string, string>(
-      (existing ?? []).map((row) => [toMonthKey(row.month), row.id])
-    );
-
-    // 2. Création des mois manquants, en une seule insertion.
-    const missing = rows
-      .filter((row) => !idByMonth.has(row.month))
-      .map((row) => ({ month: toDateColumn(row.month) }));
-
-    if (missing.length) {
-      const { data: created, error } = await supabase
-        .from("plt_publication")
-        .insert(missing)
-        .select("id, month");
-
-      if (error) return { ok: false as const, error: error.message };
-      created?.forEach((row) => idByMonth.set(toMonthKey(row.month), row.id));
-    }
-
-    // 3. Toutes les performances en une seule écriture.
-    const perfs = rows.flatMap((row) => {
-      const publicationId = idByMonth.get(row.month);
-      if (!publicationId) return [];
-
-      return PORTFOLIO_KEYS.map((key, index) => ({
-        publication_id: publicationId,
-        portfolio_key: key,
-        // La virgule décimale est acceptée : les tableurs français l'exportent.
-        return_pct: Number(String(row.values[index] ?? "").replace(",", ".")),
-      })).filter((perf) => Number.isFinite(perf.return_pct));
-    });
-
-    if (!perfs.length) {
-      return {
-        ok: false as const,
-        error: "Aucune valeur numérique trouvée dans les colonnes de performance.",
-      };
-    }
-
-    const { error: perfError } = await supabase
-      .from("plt_publication_perf")
-      .upsert(perfs);
-
-    if (perfError) return { ok: false as const, error: perfError.message };
-
-    // 4. Publication des mois concernés qui étaient encore en brouillon.
-    const touched = Array.from(new Set(perfs.map((perf) => perf.publication_id)));
-
-    const { error: publishError } = await supabase
-      .from("plt_publication")
-      .update({ published_at: new Date().toISOString() })
-      .in("id", touched)
-      .is("published_at", null);
-
-    if (publishError) return { ok: false as const, error: publishError.message };
-
-    revalidatePath("/");
-    return {
-      ok: true as const,
-      message: `${touched.length} mois importé${touched.length > 1 ? "s" : ""}.`,
-    };
   });
 
 export const unpublishMonth = async (month: string): Promise<ActionResult> =>

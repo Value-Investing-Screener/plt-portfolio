@@ -113,9 +113,6 @@ const MonthForm = ({
 
   const [hasAlert, setHasAlert] = useState(publication?.hasAlert ?? false);
   const [replayUrl, setReplayUrl] = useState(publication?.replayUrl ?? "");
-  const [replayDuration, setReplayDuration] = useState(
-    publication?.replayDurationMin ? String(publication.replayDurationMin) : ""
-  );
   const [returns, setReturns] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       portfolios.map((portfolio) => [
@@ -133,7 +130,6 @@ const MonthForm = ({
     month,
     hasAlert,
     replayUrl: replayUrl.trim() || null,
-    replayDurationMin: replayDuration ? Number(replayDuration) : null,
     returns: Object.fromEntries(
       portfolios.map((portfolio) => [
         portfolio.key,
@@ -263,7 +259,7 @@ const MonthForm = ({
             type="url"
             value={replayUrl}
             onChange={(event) => setReplayUrl(event.target.value)}
-            placeholder="Lien du replay (YouTube, Vimeo…)"
+            placeholder="Lien du replay (Vimeo)"
             aria-label="Lien du replay"
             style={{
               flex: 1,
@@ -275,15 +271,6 @@ const MonthForm = ({
               fontSize: 13,
               outline: "none",
             }}
-          />
-          <input
-            type="number"
-            min={1}
-            value={replayDuration}
-            onChange={(event) => setReplayDuration(event.target.value)}
-            placeholder="min"
-            aria-label="Durée du replay en minutes"
-            style={{ ...INPUT_STYLE, width: 76, textAlign: "right" }}
           />
         </div>
       </div>
