@@ -25,8 +25,8 @@ export const colors = {
   text2: "#B4BBC0",
   text3: "#9BA3A8",
   muted: "#8A9298",
-  muted2: "#6B7378",
-  faint: "#5A6167",
+  muted2: "#7C848A",
+  faint: "#767D84",
 
   accent: "#C08A4E",
   accentHover: "#D9A972",
