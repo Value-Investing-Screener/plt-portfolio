@@ -23,19 +23,24 @@ export const DonutChart = ({ title, segments, unit }: DonutChartProps) => {
   const focus = active !== null ? segments[active] : null;
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Label size={10.5} spacing=".16em" style={{ marginBottom: 16 }}>
         {title}
       </Label>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 20,
-          flexWrap: "wrap",
-        }}
-      >
+      {/* Occupe l'espace restant et centre verticalement le donut + sa légende,
+          pour que les trois graphiques s'alignent même avec des légendes de
+          longueurs différentes. */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 20,
+            flexWrap: "wrap",
+            width: "100%",
+          }}
+        >
         <div
           style={{ position: "relative", width: 120, height: 120, flex: "none" }}
         >
@@ -183,6 +188,7 @@ export const DonutChart = ({ title, segments, unit }: DonutChartProps) => {
               </span>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>
