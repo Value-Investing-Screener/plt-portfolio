@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ActionResult } from "./publications";
+import { routes } from "@/lib/routes";
 
 /** Durée de validité d'un lien de définition de mot de passe. */
 const VALIDITY_HOURS = 48;
@@ -66,7 +67,7 @@ export const createPasswordResetLink = async (
     return {
       ok: true,
       link: {
-        url: `${getSiteUrl()}/auth/set-password?token=${data.token}`,
+        url: `${getSiteUrl()}${routes.setPassword}?token=${data.token}`,
         expiresAt,
         validityHours: VALIDITY_HOURS,
       },

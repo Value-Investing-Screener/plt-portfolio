@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 import { colors, GUTTER, MONO } from "@/design/tokens";
 import { Emblem, GhostButton, Label, Panel, PrimaryButton } from "@/components/insider/ui";
+import { routes } from "@/lib/routes";
 
 /**
  * Filet de sécurité : sans cette frontière, la moindre exception dans un
@@ -92,7 +93,7 @@ export default function Error({
             Réessayer
           </PrimaryButton>
           <GhostButton
-            onClick={() => window.location.assign("/")}
+            onClick={() => window.location.assign(routes.insider)}
             style={{ flex: 1, borderRadius: 6 }}
           >
             Retour à l&apos;accueil

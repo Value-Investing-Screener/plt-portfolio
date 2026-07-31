@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
-import { requestPasswordReset, signIn } from "@/app/auth/actions";
+import { requestPasswordReset, signIn } from "@/app/actions/auth";
 import { PrimaryButton, Spinner } from "@/components/insider/ui";
 import { Field, FormMessage, TextButton } from "./fields";
 

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { getCurrentMember } from "@/lib/auth";
+import { routes } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "Connexion · PLT Insider",
@@ -15,7 +16,7 @@ export default async function LoginPage({
   searchParams: { suite?: string; erreur?: string };
 }) {
   const member = await getCurrentMember();
-  if (member) redirect(searchParams.suite ?? "/");
+  if (member) redirect(searchParams.suite ?? routes.insider);
 
   return (
     <AuthShell
@@ -24,7 +25,7 @@ export default async function LoginPage({
       footer="Vous n'avez pas encore d'accès ? Contactez l'équipe ParlonsLongTerme : remi@parlons-long-terme.com"
     >
       <LoginForm
-        next={searchParams.suite ?? "/"}
+        next={searchParams.suite ?? routes.insider}
         initialError={
           searchParams.erreur === "lien"
             ? "Ce lien n'est plus valide. Demandez-en un nouveau ci-dessous."

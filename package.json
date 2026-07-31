@@ -22,6 +22,8 @@
     "@supabase/supabase-js": "^2.110.8",
     "@types/lodash": "^4.14.202",
     "axios": "^1.6.5",
+    "baseline-browser-mapping": "^2.11.8",
+    "caniuse-lite": "^1.0.30001806",
     "chart.js": "^4.4.1",
     "graphql": "^16.8.1",
     "graphql-tag": "^2.12.6",

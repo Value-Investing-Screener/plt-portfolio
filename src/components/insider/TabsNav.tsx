@@ -4,17 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { colors, GUTTER } from "@/design/tokens";
+import { routes } from "@/lib/routes";
 
 /** Un onglet = une vraie route. `href` exact, `adminOnly` réservé au rôle admin. */
 export const TABS = [
-  { key: "allocation", label: "Allocation & portefeuilles", href: "/" },
-  { key: "performances", label: "Performances", href: "/performances" },
-  { key: "review", label: "Review mensuel", href: "/review" },
-  { key: "annual", label: "Revue annuelle", href: "/revue-annuelle" },
+  { key: "allocation", label: "Allocation & portefeuilles", href: routes.insider },
+  { key: "performances", label: "Performances", href: routes.performances },
+  { key: "review", label: "Review mensuel", href: routes.review },
+  { key: "annual", label: "Revue annuelle", href: routes.annual },
   {
     key: "admin",
     label: "⚙ Backoffice",
-    href: "/backoffice",
+    href: routes.backoffice,
     right: true,
     adminOnly: true,
   },
@@ -41,8 +42,12 @@ export const TabsNav = ({ isAdmin }: { isAdmin: boolean }) => {
       }}
     >
       {visibleTabs(isAdmin).map((tab) => {
+        // L'onglet Allocation est la racine de l'espace : il ne doit pas rester
+        // actif sur `/insider/performances`, d'où l'égalité stricte.
         const active =
-          tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
+          tab.href === routes.insider
+            ? pathname === routes.insider
+            : pathname.startsWith(tab.href);
         return (
           <Link
             key={tab.key}

@@ -1,5 +1,6 @@
 import { monthLabelLong } from "@/lib/format";
 import type { PortfolioMeta } from "@/lib/portfolios";
+import { routes, SITE_HOST } from "@/lib/routes";
 
 /** « -0.39 » → « - 0,39 % » ; chaîne vide → « n.c. ». */
 export const formatPerf = (value: string) => {
@@ -44,10 +45,13 @@ export const buildEmailDefaults = (
   meetingDate: string
 ) => {
   const label = monthLabelLong(month);
-  const origin =
+  // Lien vers l'espace client, à insérer dans l'e-mail : l'origine du
+  // navigateur quand on rédige depuis le backoffice, le domaine canonique
+  // sinon (rendu côté serveur).
+  const insiderUrl =
     typeof window !== "undefined"
-      ? window.location.origin
-      : "https://insider.parlons-long-terme.com";
+      ? `${window.location.origin}${routes.insider}`
+      : `https://${SITE_HOST}${routes.insider}`;
 
   const perfLines = portfolios
     .map((p) => `- ${p.name} : ${formatPerf(returns[p.key] ?? "")}`)
@@ -75,7 +79,7 @@ ${movementLine}
 Performance de chaque portefeuille :
 ${perfLines}
 
-Je vous rappelle le lien de notre outil de construction de portefeuille : ${origin}${replayLine}${meetingLine}
+Je vous rappelle le lien de notre outil de construction de portefeuille : ${insiderUrl}${replayLine}${meetingLine}
 
 Comme d'habitude, je reste à votre disposition pour répondre à toutes vos questions concernant notre modèle.
 

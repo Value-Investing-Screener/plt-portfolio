@@ -1,17 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { INSIDER_BASE, PUBLIC_INSIDER_PREFIXES, routes } from "@/lib/routes";
 import {
   isSupabaseConfigured,
   SUPABASE_ANON_KEY,
   SUPABASE_URL,
 } from "@/lib/supabase/config";
 
-/** Routes accessibles sans session. */
-const PUBLIC_PREFIXES = ["/login", "/auth"];
-
+/**
+ * Routes de l'espace client accessibles sans session (connexion, liens
+ * d'invitation et de réinitialisation).
+ */
 const isPublic = (pathname: string) =>
-  PUBLIC_PREFIXES.some(
+  PUBLIC_INSIDER_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
 
@@ -60,19 +62,18 @@ export async function middleware(request: NextRequest) {
   }
 
   const login = request.nextUrl.clone();
-  login.pathname = "/login";
+  login.pathname = routes.login;
   login.search = "";
-  if (pathname !== "/") login.searchParams.set("suite", pathname);
+  if (pathname !== INSIDER_BASE) login.searchParams.set("suite", pathname);
 
   return NextResponse.redirect(login);
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Toutes les routes sauf les fichiers statiques et les métadonnées :
-     * _next/static, _next/image, favicon.ico, images et polices.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)",
-  ],
+  /*
+   * Seuls l'espace client et l'API sont protégés : le site vitrine occupe la
+   * racine du domaine et doit rester public — et statique, ce qui suppose que
+   * le middleware ne s'exécute pas dessus.
+   */
+  matcher: ["/insider/:path*", "/api/:path*"],
 };

@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { SITE_HOST } from "@/lib/routes";
 import { ClientLayout } from "./clientLayout";
 
 /**
@@ -27,10 +28,35 @@ const plexMono = localFont({
   display: "swap",
 });
 
+/**
+ * Serif du site vitrine. Le fichier normal est variable (300 → 700) ; seul
+ * l'italique demande un second fichier. Sous-ensemble latin, comme les Plex.
+ */
+const cormorant = localFont({
+  src: [
+    {
+      path: "./fonts/CormorantGaramond.woff2",
+      weight: "300 700",
+      style: "normal",
+    },
+    {
+      path: "./fonts/CormorantGaramond-Italic.woff2",
+      weight: "400",
+      style: "italic",
+    },
+  ],
+  variable: "--font-serif",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "PLT Insider · Espace client",
+  metadataBase: new URL(`https://${SITE_HOST}`),
+  title: {
+    default: "Parlons Long Terme · Sublimez votre capital",
+    template: "%s · Parlons Long Terme",
+  },
   description:
-    "Espace client PLT Insider - allocation, performances et comptes rendus des portefeuilles Parlons Long Terme.",
+    "Le média d'éducation financière de Rémi De Truchis De Varennes : newsletter gratuite, logiciel Value Investing Screener, PLT Family Office et Mastermind PLT Insider.",
 };
 
 export default function RootLayout({
@@ -39,7 +65,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${plexSans.variable} ${plexMono.variable}`}>
+    <html
+      lang="fr"
+      className={`${plexSans.variable} ${plexMono.variable} ${cormorant.variable}`}
+    >
       <body
         style={{
           fontFamily: "var(--font-sans), system-ui, sans-serif",

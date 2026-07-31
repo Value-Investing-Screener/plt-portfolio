@@ -1,0 +1,266 @@
+/**
+ * Feuille du site vitrine. Tout est préfixé `.plt-site` : les règles globales
+ * de `globals.css` (fond sombre, liens cuivre de l'espace client) s'appliquent
+ * encore au document, et la vitrine doit pouvoir les recouvrir sans les
+ * modifier.
+ *
+ * On n'y met que ce que le style en ligne ne sait pas exprimer : survols,
+ * points de rupture, animations.
+ */
+
+/* Le défilement doux est posé sur `html` dans globals.css : c'est l'élément
+   qui défile, une règle sur ce conteneur resterait sans effet. */
+
+.plt-site ::selection {
+  background: #e8863c;
+  color: #171310;
+}
+
+.plt-site a {
+  color: #e8863c;
+  text-decoration: none;
+  transition: background 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.plt-site a:hover {
+  color: #f2a763;
+}
+
+/* --- Boutons d'appel à l'action --------------------------------------- */
+
+/*
+ * Fond, bordure et couleur vivent ici et non en style en ligne : un style en
+ * ligne l'emporte sur toute classe, et l'état de survol ne pourrait donc rien
+ * inverser — on obtiendrait un texte noir sur fond noir.
+ */
+.plt-site .plt-s-cta {
+  display: inline-block;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+}
+
+/* Plein cuivre (livre, PLT Insider) : s'évide au survol. */
+.plt-site .plt-s-cta-solid {
+  border: 1px solid #e8863c;
+  background: #e8863c;
+  color: #171310;
+  font-weight: 600;
+  padding: 16px 34px;
+}
+.plt-site .plt-s-cta-solid:hover {
+  background: transparent;
+  color: #e8863c;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -12px rgba(232, 134, 60, 0.55);
+}
+
+/* Bordé sombre sur fond crème : inversion. */
+.plt-site .plt-s-cta-dark {
+  border: 1px solid #171310;
+  color: #171310;
+  padding: 15px 30px;
+}
+.plt-site .plt-s-cta-dark:hover {
+  background: #171310;
+  color: #f4efe9;
+}
+
+/* Bordé clair sur fond sombre : bascule en cuivre plein. */
+.plt-site .plt-s-cta-light {
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: #f0e9df;
+  padding: 15px 30px;
+}
+.plt-site .plt-s-cta-light:hover {
+  background: #e8863c;
+  border-color: #e8863c;
+  color: #171310;
+}
+
+/* Lien texte à pastille (bio). */
+.plt-site .plt-s-cta-inline {
+  color: #f0e9df;
+}
+.plt-site .plt-s-cta-inline:hover {
+  color: #ffffff;
+}
+.plt-site .plt-s-bullet {
+  border: 1px solid #e8863c;
+  color: #e8863c;
+  transition: background 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.plt-site .plt-s-cta-inline:hover .plt-s-bullet {
+  background: #e8863c;
+  color: #171310;
+}
+
+/* --- Grilles ----------------------------------------------------------- */
+
+/*
+ * Les gabarits de colonnes sont posés en style en ligne, section par section.
+ * Sous 900 px, tout repasse sur une colonne — d'où le `!important`, seul moyen
+ * pour une classe de reprendre la main sur un style en ligne.
+ */
+@media (max-width: 900px) {
+  .plt-site .plt-s-collapse {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Le texte passe devant l'image, quel que soit l'ordre du balisage. */
+  .plt-site .plt-s-body {
+    order: 1;
+  }
+  .plt-site .plt-s-media {
+    order: 2;
+  }
+
+  /* Le retrait du sous-titre du hero n'a plus de sens sur une colonne. */
+  .plt-site .plt-s-hero-sub {
+    padding-left: 0 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  /* Pages légales : les paires libellé / valeur s'empilent. */
+  .plt-site .plt-s-legal-rows {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+  .plt-site .plt-s-legal-rows dd {
+    border-top: none !important;
+    padding-top: 0 !important;
+  }
+}
+
+@media (max-width: 620px) {
+  /* Les trois atouts du livre s'empilent en deux colonnes. */
+  .plt-site .plt-s-assets {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* --- Entrée du hero ----------------------------------------------------- */
+
+/*
+ * Arrivée en fondu montant, décalée d'un élément à l'autre. Pure CSS, jouée
+ * une seule fois au chargement : rien à hydrater, et les navigateurs qui ne
+ * joueraient pas l'animation affichent simplement l'état final.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes plt-s-rise {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes plt-s-bloom {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .plt-site .plt-s-enter {
+    animation: plt-s-rise 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  .plt-site .plt-s-enter-2 {
+    animation-delay: 0.14s;
+  }
+  .plt-site .plt-s-enter-3 {
+    animation-delay: 0.28s;
+  }
+  .plt-site .plt-s-enter-bloom {
+    animation: plt-s-bloom 1.3s cubic-bezier(0.22, 0.61, 0.36, 1) 0.08s both;
+  }
+}
+
+/* --- Révélation au défilement ------------------------------------------- */
+
+/*
+ * L'état masqué n'est actif que sous `.plt-anim`, classe rendue côté serveur
+ * sur le conteneur de la page : le contenu naît déjà masqué, sans le
+ * scintillement d'un masquage appliqué après coup.
+ *
+ * `Reveal.tsx` ajoute `.is-visible` à l'entrée dans le champ, et retire
+ * `plt-anim` si l'animation ne doit pas jouer. Sans JavaScript, le `<style>`
+ * du `<noscript>` rend la main au contenu.
+ */
+.plt-site.plt-anim .plt-s-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  will-change: opacity, transform;
+}
+
+.plt-site.plt-anim .plt-s-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.85s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plt-site.plt-anim .plt-s-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* --- Animations décoratives -------------------------------------------- */
+
+@keyframes plt-s-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes plt-s-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.plt-site .plt-s-ring {
+  animation: plt-s-spin 26s linear infinite;
+}
+
+.plt-site .plt-s-dot-a {
+  animation: plt-s-float 6s ease-in-out infinite;
+}
+
+.plt-site .plt-s-dot-b {
+  animation: plt-s-float 7.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plt-site .plt-s-ring,
+  .plt-site .plt-s-dot-a,
+  .plt-site .plt-s-dot-b {
+    animation: none;
+  }
+  .plt-site .plt-s-cta-solid:hover {
+    transform: none;
+  }
+}

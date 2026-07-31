@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ActionResult } from "./publications";
+import { routes } from "@/lib/routes";
 
 const guard = async <T>(
   run: (adminId: string) => Promise<T>
@@ -50,7 +51,7 @@ export const inviteMember = async (
       address,
       {
         data: { full_name: name },
-        redirectTo: `${getSiteUrl()}/auth/confirm?next=/auth/reset`,
+        redirectTo: `${getSiteUrl()}${routes.authConfirm}?next=${routes.authReset}`,
       }
     );
 

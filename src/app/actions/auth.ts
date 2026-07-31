@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getSiteUrl } from "@/lib/siteUrl";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { routes } from "@/lib/routes";
 
 export type AuthResult = { error: string } | null;
 
@@ -39,7 +40,7 @@ export const signOut = async () => {
   const supabase = createSupabaseServerClient();
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
-  redirect("/login");
+  redirect(routes.login);
 };
 
 /** Définition du mot de passe après invitation ou réinitialisation. */
@@ -64,7 +65,7 @@ export const requestPasswordReset = async (
   const supabase = createSupabaseServerClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${getSiteUrl()}/auth/confirm?next=/auth/reset`,
+    redirectTo: `${getSiteUrl()}${routes.authConfirm}?next=${routes.authReset}`,
   });
 
   if (error) return { error: humanize(error.message) };

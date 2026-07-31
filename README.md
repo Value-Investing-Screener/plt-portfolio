@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# parlons-long-terme.com
 
-## Getting Started
+Application Next.js (App Router) qui sert **deux surfaces** sur un seul domaine.
 
-First, run the development server:
+| URL | Contenu | Accès |
+| --- | --- | --- |
+| `/` | Site vitrine « Parlons Long Terme » | Public, statique |
+| `/insider` | Espace client PLT Insider — allocation & portefeuilles | Session requise |
+| `/insider/performances`, `/insider/review`, `/insider/revue-annuelle` | Onglets de l'espace | Session requise |
+| `/insider/backoffice`, `/insider/config` | Backoffice | Administrateurs |
+| `/insider/login`, `/insider/auth/*` | Connexion, invitation, réinitialisation | Public |
+| `/api/*` | Données des portefeuilles, documents signés | Session requise |
+
+Le préfixe `/insider` est déclaré une seule fois, dans [`src/lib/routes.ts`](src/lib/routes.ts).
+Le middleware ([`src/middleware.ts`](src/middleware.ts)) ne s'exécute que sur `/insider`
+et `/api` : la vitrine reste publique et prérendue.
+
+### Ancien sous-domaine
+
+`insider.parlons-long-terme.com` est redirigé en 308 vers
+`www.parlons-long-terme.com/insider/…` (voir `redirects()` dans
+[`next.config.js`](next.config.js)). Les deux domaines doivent rester rattachés
+au projet Vercel pour que la redirection s'applique.
+
+## Développement
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env   # puis renseigner les variables
+npm run dev            # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Sans variables Supabase, l'authentification est désactivée en développement et
+l'application renvoie 503 en production.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Organisation
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```
+src/app/            routes — page.tsx (vitrine), insider/ (espace client), api/
+src/components/site/  sections de la vitrine
+src/components/insider/ interface de l'espace client
+src/design/         tokens.ts (espace client) · site.ts (vitrine)
+src/lib/            auth, Supabase, requêtes Hasura, e-mails, routes
+supabase/           migrations
+```
 
-## Learn More
+Les photos de la vitrine se déposent dans [`public/site/`](public/site/README.md).
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+| Commande | Rôle |
+| --- | --- |
+| `npm run dev` / `build` / `start` | Cycle Next.js |
+| `npm run lint` | ESLint |
+| `npm run generate` | Types GraphQL (Hasura) |
+| `npm run db:push` / `db:status` | Migrations Supabase |
+| `npm run db:admin` | Création d'un compte administrateur |

@@ -18,6 +18,17 @@ body {
   color: #e6eaec;
 }
 
+/* Ancres du site vitrine (« MORE », « Rejoindre la communauté »). */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

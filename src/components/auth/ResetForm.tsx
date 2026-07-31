@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
-import { updatePassword } from "@/app/auth/actions";
+import { updatePassword } from "@/app/actions/auth";
 import { PrimaryButton, Spinner } from "@/components/insider/ui";
+import { routes } from "@/lib/routes";
 import { Field, FormMessage } from "./fields";
 
 export const ResetForm = () => {
@@ -30,7 +31,7 @@ export const ResetForm = () => {
         setError(result.error);
         return;
       }
-      router.replace("/");
+      router.replace(routes.insider);
       router.refresh();
     });
   };

@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 
-import { signOut } from "@/app/auth/actions";
+import { signOut } from "@/app/actions/auth";
 import { colors } from "@/design/tokens";
 
 export const SignOutButton = () => {

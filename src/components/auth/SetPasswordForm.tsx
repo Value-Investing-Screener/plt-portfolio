@@ -5,6 +5,7 @@ import { useState, useTransition, type FormEvent } from "react";
 
 import { setPasswordWithToken } from "@/app/actions/passwordReset";
 import { PrimaryButton, Spinner } from "@/components/insider/ui";
+import { routes } from "@/lib/routes";
 import { Field, FormMessage } from "./fields";
 
 export const SetPasswordForm = ({ token }: { token: string }) => {
@@ -34,7 +35,7 @@ export const SetPasswordForm = ({ token }: { token: string }) => {
       setDone(true);
       // Le compte n'est pas connecté ici (le lien ne pose pas de session) :
       // on renvoie vers la connexion, mot de passe en main.
-      setTimeout(() => router.replace("/login"), 1400);
+      setTimeout(() => router.replace(routes.login), 1400);
     });
   };
 

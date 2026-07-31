@@ -8,6 +8,7 @@ import {
   getPortfolios,
   getPublications,
 } from "@/lib/plt/queries";
+import { routes } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +21,8 @@ export const maxDuration = 60;
 
 export default async function BackofficePage() {
   const member = await getCurrentMember();
-  if (!member) redirect("/login");
-  if (member.role !== "admin") redirect("/");
+  if (!member) redirect(routes.login);
+  if (member.role !== "admin") redirect(routes.insider);
 
   // Les administrateurs voient aussi les brouillons.
   const [portfolios, publications, annualReviews, members] = await Promise.all([

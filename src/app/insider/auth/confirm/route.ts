@@ -2,6 +2,7 @@ import { type EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { routes } from "@/lib/routes";
 
 /**
  * Point d'entrée des liens envoyés par e-mail (invitation, réinitialisation).
@@ -14,7 +15,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
-  const next = searchParams.get("next") ?? "/auth/reset";
+  const next = searchParams.get("next") ?? routes.authReset;
 
   const supabase = createSupabaseServerClient();
 
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
     : { error: { message: "Lien invalide." } };
 
   if (error) {
-    const login = new URL("/login", origin);
+    const login = new URL(routes.login, origin);
     login.searchParams.set("erreur", "lien");
     return NextResponse.redirect(login);
   }

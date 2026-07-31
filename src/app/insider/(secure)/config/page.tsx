@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ConfigView } from "@/components/insider/config/ConfigView";
 import { getCurrentMember } from "@/lib/auth";
 import { getPortfolios } from "@/lib/plt/queries";
+import { routes } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +16,8 @@ export const metadata: Metadata = {
 export default async function ConfigPage() {
   const member = await getCurrentMember();
 
-  if (!member) redirect("/login");
-  if (member.role !== "admin") redirect("/");
+  if (!member) redirect(routes.login);
+  if (member.role !== "admin") redirect(routes.insider);
 
   const portfolios = await getPortfolios();
 
