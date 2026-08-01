@@ -23,31 +23,31 @@ const nextConfig = {
    * l'ancien hôte — les liens des e-mails déjà envoyés et les favoris des
    * membres continuent de fonctionner.
    */
-  // async redirects() {
-  //   const onLegacyHost = [{ type: 'host', value: LEGACY_INSIDER_HOST }];
+  async redirects() {
+    const onLegacyHost = [{ type: 'host', value: LEGACY_INSIDER_HOST }];
 
-  //   return [
-  //     // Les routes d'API n'ont pas bougé : elles ne prennent pas le préfixe.
-  //     {
-  //       source: '/api/:path*',
-  //       has: onLegacyHost,
-  //       destination: `${SITE_ORIGIN}/api/:path*`,
-  //       permanent: true,
-  //     },
-  //     {
-  //       source: '/',
-  //       has: onLegacyHost,
-  //       destination: `${SITE_ORIGIN}/insider`,
-  //       permanent: true,
-  //     },
-  //     {
-  //       source: '/:path*',
-  //       has: onLegacyHost,
-  //       destination: `${SITE_ORIGIN}/insider/:path*`,
-  //       permanent: true,
-  //     },
-  //   ];
-  // },
+    return [
+      // Les routes d'API n'ont pas bougé : elles ne prennent pas le préfixe.
+      {
+        source: '/api/:path*',
+        has: onLegacyHost,
+        destination: `${SITE_ORIGIN}/api/:path*`,
+        permanent: true,
+      },
+      {
+        source: '/',
+        has: onLegacyHost,
+        destination: `${SITE_ORIGIN}/insider`,
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: onLegacyHost,
+        destination: `${SITE_ORIGIN}/insider/:path*`,
+        permanent: true,
+      },
+    ];
+  },
 
   webpack: (config) => {
     config.module.rules.push({
