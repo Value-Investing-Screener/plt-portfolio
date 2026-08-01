@@ -17,7 +17,7 @@ export const SITE_LINKS = {
   youtube: "https://www.youtube.com/@parlons-long-terme",
 
   /** À câbler : page de présentation du mastermind. */
-  insider: "#",
+  insider: "https://forms.gle/XvGLPYBp7cPrfSft6",
 
   /** Connexion des membres — l'espace client, sous /insider. */
   memberArea: routes.insider,
