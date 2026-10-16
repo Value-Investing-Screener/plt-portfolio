@@ -49,8 +49,8 @@ type PublicationRow = {
   replay_duration_min: number | null;
   plt_publication_report: {
     portfolio_key: string;
-    storage_path: string;
-    file_size_bytes: number;
+    document_url: string;
+    file_size_bytes: number | null;
     page_count: number | null;
   }[];
   plt_publication_perf: { portfolio_key: string; return_pct: number }[];
@@ -66,8 +66,8 @@ const toPublication = (row: PublicationRow): Publication => ({
   reports: row.plt_publication_report.map(
     (report): PublicationReport => ({
       portfolioKey: report.portfolio_key as PortfolioKey,
-      storagePath: report.storage_path,
-      fileSizeBytes: Number(report.file_size_bytes),
+      documentUrl: report.document_url,
+      fileSizeBytes: report.file_size_bytes ? Number(report.file_size_bytes) : null,
       pageCount: report.page_count,
     })
   ),
@@ -81,7 +81,7 @@ const toPublication = (row: PublicationRow): Publication => ({
 
 const SELECT = `
   id, month, published_at, has_alert, replay_url, replay_duration_min,
-  plt_publication_report ( portfolio_key, storage_path, file_size_bytes, page_count ),
+  plt_publication_report ( portfolio_key, document_url, file_size_bytes, page_count ),
   plt_publication_perf ( portfolio_key, return_pct )
 `;
 
@@ -138,7 +138,7 @@ export const getAnnualReviews = async ({
   let query = supabase
     .from("plt_annual_review")
     .select(
-      "year, title, tag, blurb, storage_path, file_size_bytes, page_count, published_at"
+      "year, title, tag, blurb, document_url, file_size_bytes, page_count, published_at"
     )
     .order("year", { ascending: false });
 
@@ -152,7 +152,7 @@ export const getAnnualReviews = async ({
     title: row.title,
     tag: row.tag,
     blurb: row.blurb,
-    storagePath: row.storage_path,
+    documentUrl: row.document_url,
     fileSizeBytes: row.file_size_bytes ? Number(row.file_size_bytes) : null,
     pageCount: row.page_count,
     publishedAt: row.published_at,

@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
-import { DOCUMENTS_BUCKET, readDocumentMeta } from "@/lib/plt/documents";
+import { DOCUMENTS_BUCKET, resolveDriveDocument } from "@/lib/plt/documents";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import type { ActionResult, UploadUrlResult } from "./publications";
+import type { ActionResult } from "./publications";
 
 const guard = async <T>(
   run: () => Promise<T>
@@ -76,58 +76,34 @@ export const saveAnnualReview = async (draft: {
     return { ok: true as const, message: "Revue annuelle enregistrée." };
   });
 
-/** URL signée pour téléverser la revue directement du navigateur. */
-export const createAnnualUploadUrl = async (
-  yearValue: string | number
-): Promise<UploadUrlResult> => {
-  try {
-    await requireAdmin();
-    const year = parseYear(yearValue);
-    if (!year) return { ok: false, error: "Exercice invalide." };
-
-    await ensureAnnualReview(year);
-
-    const storagePath = `revues-annuelles/${year}.pdf`;
-    const { data, error } = await createSupabaseAdminClient()
-      .storage.from(DOCUMENTS_BUCKET)
-      .createSignedUploadUrl(storagePath, { upsert: true });
-
-    if (error || !data) {
-      return { ok: false, error: error?.message ?? "URL de transfert indisponible." };
-    }
-    return { ok: true, path: data.path, token: data.token };
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Action impossible.",
-    };
-  }
-};
-
-/** Enregistre la revue téléversée (taille + pages lues depuis le stockage). */
+/** Enregistre le lien Google Drive de la revue (taille + pages lues sur Drive). */
 export const registerAnnualReview = async (
   yearValue: string | number,
-  storagePath: string
+  driveUrl: string
 ): Promise<ActionResult> =>
   guard(async () => {
     const year = parseYear(yearValue);
     if (!year) return { ok: false as const, error: "Exercice invalide." };
 
-    const meta = await readDocumentMeta(storagePath);
+    const resolved = await resolveDriveDocument(driveUrl);
+    if (!resolved.ok) return resolved;
+    const { document } = resolved;
+
+    await ensureAnnualReview(year);
 
     const { error } = await createSupabaseAdminClient()
       .from("plt_annual_review")
       .update({
-        storage_path: storagePath,
-        file_size_bytes: meta.sizeBytes,
-        page_count: meta.pageCount,
+        document_url: document.url,
+        file_size_bytes: document.sizeBytes,
+        page_count: document.pageCount,
       })
       .eq("year", year);
 
     if (error) return { ok: false as const, error: error.message };
 
     revalidatePath("/");
-    return { ok: true as const, message: `Revue ${year} chargée.` };
+    return { ok: true as const, message: `Revue ${year} enregistrée.` };
   });
 
 export const removeAnnualReviewFile = async (
@@ -139,13 +115,14 @@ export const removeAnnualReviewFile = async (
 
     const supabase = createSupabaseAdminClient();
 
+    // Libère l'éventuel fichier chargé avant le passage à Google Drive.
     await supabase.storage
       .from(DOCUMENTS_BUCKET)
       .remove([`revues-annuelles/${parsed}.pdf`]);
 
     const { error } = await supabase
       .from("plt_annual_review")
-      .update({ storage_path: null, file_size_bytes: null, page_count: null })
+      .update({ document_url: null, file_size_bytes: null, page_count: null })
       .eq("year", parsed);
 
     if (error) return { ok: false as const, error: error.message };

@@ -32,7 +32,7 @@ export const MonthForm = ({
   runAction: RunAction;
   recipientCount: number;
 }) => {
-  const { pending, uploadReport, removeReport, save, unpublish, publish } =
+  const { pending, linkReport, removeReport, save, unpublish, publish } =
     usePublicationActions({ month, runAction });
 
   const [hasAlert, setHasAlert] = useState(publication?.hasAlert ?? false);
@@ -96,7 +96,7 @@ export const MonthForm = ({
         portfolios={portfolios}
         publication={publication}
         pending={pending}
-        onUpload={uploadReport}
+        onLink={linkReport}
         onRemove={removeReport}
       />
 

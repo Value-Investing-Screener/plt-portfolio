@@ -7,8 +7,8 @@ import type { PortfolioKey } from "@/lib/portfolios";
 
 export type PublicationReport = {
   portfolioKey: PortfolioKey;
-  storagePath: string;
-  fileSizeBytes: number;
+  documentUrl: string;
+  fileSizeBytes: number | null;
   pageCount: number | null;
 };
 
@@ -31,7 +31,7 @@ export type AnnualReview = {
   title: string;
   tag: string;
   blurb: string;
-  storagePath: string | null;
+  documentUrl: string | null;
   fileSizeBytes: number | null;
   pageCount: number | null;
   publishedAt: string | null;

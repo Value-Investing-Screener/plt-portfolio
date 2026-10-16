@@ -38,9 +38,9 @@ export const SLOT_STYLE: CSSProperties = {
 export const fileSlot = (
   loaded: boolean,
   {
-    uploadLabel = "Charger PDF",
-    emptyLabel = "Aucun fichier",
-    loadedLabel = "Fichier chargé",
+    uploadLabel = "Enregistrer",
+    emptyLabel = "Aucun lien",
+    loadedLabel = "Lien enregistré",
   } = {}
 ) =>
   loaded
@@ -107,49 +107,59 @@ export const SmallButton = ({
 );
 
 /**
- * Bouton déclenchant un sélecteur de fichier caché — le `<input type=file>`
- * natif ne se style pas, et le design attend un bouton comme les autres.
+ * Champ de lien Google Drive d'un document, validé par le bouton ou Entrée.
+ * Le lien reste affiché s'il est refusé ; une fois enregistré, l'emplacement
+ * passe à l'état « chargé » et le champ disparaît.
  */
-export const UploadButton = ({
+export const DriveLinkInput = ({
   label,
-  onFile,
+  onSubmit,
   disabled = false,
   background,
   color,
   border,
 }: {
   label: string;
-  onFile: (file: File) => void;
+  onSubmit: (url: string) => void;
   disabled?: boolean;
   background: string;
   color: string;
   border: string;
 }) => {
-  const input = useRef<HTMLInputElement>(null);
+  const [url, setUrl] = useState("");
+
+  const submit = () => {
+    const value = url.trim();
+    if (!value || disabled) return;
+    onSubmit(value);
+  };
 
   return (
-    <>
+    <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
       <input
-        ref={input}
-        type="file"
-        accept="application/pdf"
-        hidden
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) onFile(file);
-          // Permet de re-sélectionner le même fichier après un retrait.
-          event.target.value = "";
+        type="url"
+        value={url}
+        disabled={disabled}
+        onChange={(event) => setUrl(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            submit();
+          }
         }}
+        placeholder="Lien de partage Google Drive"
+        aria-label="Lien de partage Google Drive du PDF"
+        style={{ ...INPUT_STYLE, flex: 1, minWidth: 0, fontSize: 12 }}
       />
       <SmallButton
         label={label}
-        onClick={() => input.current?.click()}
-        disabled={disabled}
+        onClick={submit}
+        disabled={disabled || !url.trim()}
         background={background}
         color={color}
         border={border}
       />
-    </>
+    </div>
   );
 };
 

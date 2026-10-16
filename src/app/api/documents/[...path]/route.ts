@@ -5,6 +5,11 @@ import { DOCUMENTS_BUCKET } from "@/lib/plt/documents";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+/*
+ * Sert uniquement les documents chargés dans le bucket privé avant le passage à
+ * Google Drive. Les liens Drive sont ouverts directement (`documentHref`).
+ */
+
 /** Tables susceptibles de référencer un document du bucket privé. */
 const DOCUMENT_TABLES = ["plt_publication_report", "plt_annual_review"];
 
@@ -19,8 +24,8 @@ const isReadable = async (storagePath: string) => {
   for (const table of DOCUMENT_TABLES) {
     const { data } = await supabase
       .from(table)
-      .select("storage_path")
-      .eq("storage_path", storagePath)
+      .select("document_url")
+      .eq("document_url", storagePath)
       .maybeSingle();
 
     if (data) return true;

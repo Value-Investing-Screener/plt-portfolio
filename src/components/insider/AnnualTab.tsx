@@ -1,6 +1,7 @@
 import { colors, MONO } from "@/design/tokens";
 import { documentMeta } from "@/lib/format";
 import type { YearRow } from "@/lib/performance";
+import { documentHref } from "@/lib/plt/constants";
 import type { AnnualReview } from "@/lib/plt/types";
 import { Dot, Emblem, EmptyState, Label, Panel, TabHeader } from "./ui";
 
@@ -28,7 +29,7 @@ export const AnnualTab = ({ reviews, yearRows }: AnnualTabProps) => (
     )}
 
     {reviews.map((review) => {
-      const available = Boolean(review.storagePath);
+      const documentUrl = review.documentUrl;
       // Les barres de performance de l'exercice, si l'année est couverte.
       const bars =
         yearRows.find((row) => row.label.startsWith(String(review.year)))
@@ -75,7 +76,7 @@ export const AnnualTab = ({ reviews, yearRows }: AnnualTabProps) => (
             >
               PLT Insider
             </div>
-            {!available && (
+            {!documentUrl && (
               <span
                 style={{
                   position: "absolute",
@@ -188,13 +189,13 @@ export const AnnualTab = ({ reviews, yearRows }: AnnualTabProps) => (
               <span
                 style={{ fontSize: 12, color: colors.muted2, fontFamily: MONO }}
               >
-                {available
+                {documentUrl
                   ? documentMeta(review.pageCount, review.fileSizeBytes)
                   : "Document en cours de rédaction"}
               </span>
-              {available ? (
+              {documentUrl ? (
                 <a
-                  href={`/api/documents/${review.storagePath}`}
+                  href={documentHref(documentUrl)}
                   target="_blank"
                   rel="noreferrer"
                   className="plt-btn-primary"

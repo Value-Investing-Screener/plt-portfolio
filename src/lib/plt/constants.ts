@@ -3,12 +3,18 @@
  * ce fichier est importable depuis un composant « use client »).
  */
 
-/** Bucket privé — voir `supabase/migrations/*_plt_publications.sql`. */
+/**
+ * Ancien bucket privé — voir `supabase/migrations/*_plt_publications.sql`.
+ * Les documents sont désormais sur Google Drive ; le bucket ne sert plus qu'aux
+ * documents chargés avant la migration, tant qu'ils n'ont pas été remplacés.
+ */
 export const DOCUMENTS_BUCKET = "plt-documents";
 
-/** Taille maximale d'un document téléversé. */
-export const MAX_DOCUMENT_BYTES = 50 * 1024 * 1024;
-
-export const MAX_DOCUMENT_LABEL = `${Math.round(
-  MAX_DOCUMENT_BYTES / 1024 / 1024
-)} Mo`;
+/**
+ * Lien à ouvrir pour un document : le lien Google Drive tel quel, ou la route
+ * qui signe l'URL d'un ancien document du bucket.
+ */
+export const documentHref = (documentUrl: string) =>
+  /^https?:\/\//.test(documentUrl)
+    ? documentUrl
+    : `/api/documents/${documentUrl}`;

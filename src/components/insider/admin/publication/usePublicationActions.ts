@@ -5,7 +5,6 @@ import { useTransition } from "react";
 
 import { sendClientBroadcast } from "@/app/actions/broadcast";
 import {
-  createReportUploadUrl,
   publishMonth,
   registerReport,
   removeReport as removeReportAction,
@@ -14,7 +13,6 @@ import {
   type ActionResult,
   type PublicationDraft,
 } from "@/app/actions/publications";
-import { uploadToSignedUrl, validateDocument } from "@/lib/plt/upload";
 import type { PortfolioKey } from "@/lib/portfolios";
 import type { RunAction } from "../shared";
 
@@ -22,7 +20,7 @@ import type { RunAction } from "../shared";
 export type EmailPayload = { subject: string; body: string } | null;
 
 /**
- * Actions de publication d'un mois (upload, publication, diffusion, retrait).
+ * Actions de publication d'un mois (rapports, publication, diffusion, retrait).
  *
  * Un unique `useTransition` porte le `pending` de tout le formulaire : pendant
  * n'importe quelle action, tous les contrôles se désactivent. Chaque action
@@ -45,24 +43,8 @@ export const usePublicationActions = ({
       if (await runAction(action)) router.refresh();
     });
 
-  // Transfert direct navigateur → Supabase (URL signée), puis enregistrement.
-  const uploadReport = (portfolioKey: PortfolioKey, file: File) =>
-    run(async () => {
-      const invalid = validateDocument(file);
-      if (invalid) return { ok: false as const, error: invalid };
-
-      const signed = await createReportUploadUrl(month, portfolioKey);
-      if (!signed.ok) return { ok: false as const, error: signed.error };
-
-      const uploadError = await uploadToSignedUrl(
-        signed.path,
-        signed.token,
-        file
-      );
-      if (uploadError) return { ok: false as const, error: uploadError };
-
-      return registerReport(month, portfolioKey, signed.path);
-    });
+  const linkReport = (portfolioKey: PortfolioKey, url: string) =>
+    run(() => registerReport(month, portfolioKey, url));
 
   const removeReport = (portfolioKey: PortfolioKey) =>
     run(() => removeReportAction(month, portfolioKey));
@@ -88,5 +70,5 @@ export const usePublicationActions = ({
       return { ok: true as const, message: `${result.message} · ${sent.message}` };
     });
 
-  return { pending, uploadReport, removeReport, save, unpublish, publish };
+  return { pending, linkReport, removeReport, save, unpublish, publish };
 };

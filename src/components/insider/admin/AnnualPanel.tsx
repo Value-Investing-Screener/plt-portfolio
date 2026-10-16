@@ -5,7 +5,6 @@ import { useMemo, useState, useTransition } from "react";
 
 import type { ActionResult } from "@/app/actions/publications";
 import {
-  createAnnualUploadUrl,
   publishAnnualReview,
   registerAnnualReview,
   removeAnnualReviewFile,
@@ -15,14 +14,13 @@ import {
 import { colors, MONO } from "@/design/tokens";
 import { documentMeta } from "@/lib/format";
 import type { AnnualReview } from "@/lib/plt/types";
-import { uploadToSignedUrl, validateDocument } from "@/lib/plt/upload";
 import { GhostButton, PdfBadge, PrimaryButton } from "../ui";
 import {
+  DriveLinkInput,
   fileSlot,
   INPUT_STYLE,
   SLOT_STYLE,
   SmallButton,
-  UploadButton,
   type RunAction,
 } from "./shared";
 
@@ -84,26 +82,11 @@ const AnnualForm = ({
   const [blurb, setBlurb] = useState(review?.blurb ?? "");
 
   const published = Boolean(review?.publishedAt);
-  const state = fileSlot(Boolean(review?.storagePath));
+  const state = fileSlot(Boolean(review?.documentUrl));
 
   const run = (action: () => Promise<ActionResult>) =>
     startTransition(async () => {
       if (await runAction(action)) router.refresh();
-    });
-
-  // Transfert direct navigateur → Supabase, puis enregistrement.
-  const upload = (file: File) =>
-    run(async () => {
-      const invalid = validateDocument(file);
-      if (invalid) return { ok: false as const, error: invalid };
-
-      const signed = await createAnnualUploadUrl(year);
-      if (!signed.ok) return { ok: false as const, error: signed.error };
-
-      const uploadError = await uploadToSignedUrl(signed.path, signed.token, file);
-      if (uploadError) return { ok: false as const, error: uploadError };
-
-      return registerAnnualReview(year, signed.path);
     });
 
   return (
@@ -147,33 +130,33 @@ const AnnualForm = ({
           <div style={{ fontSize: 13, color: colors.text, fontWeight: 600 }}>
             Revue annuelle {year}
           </div>
-          <div
-            style={{
-              fontSize: 11,
-              fontFamily: MONO,
-              marginTop: 2,
-              color: state.stateColor,
-            }}
-          >
-            {review?.storagePath
-              ? documentMeta(review.pageCount, review.fileSizeBytes)
-              : state.stateStr}
-          </div>
+          {review?.documentUrl ? (
+            <div
+              style={{
+                fontSize: 11,
+                fontFamily: MONO,
+                marginTop: 2,
+                color: state.stateColor,
+              }}
+            >
+              {documentMeta(review.pageCount, review.fileSizeBytes)}
+            </div>
+          ) : (
+            <DriveLinkInput
+              label={state.btnLabel}
+              disabled={pending}
+              onSubmit={(url) => run(() => registerAnnualReview(year, url))}
+              background={state.btnBackground}
+              color={state.btnColor}
+              border={state.btnBorder}
+            />
+          )}
         </div>
-        {review?.storagePath ? (
+        {review?.documentUrl && (
           <SmallButton
             label={state.btnLabel}
             disabled={pending}
             onClick={() => run(() => removeAnnualReviewFile(year))}
-            background={state.btnBackground}
-            color={state.btnColor}
-            border={state.btnBorder}
-          />
-        ) : (
-          <UploadButton
-            label={state.btnLabel}
-            disabled={pending}
-            onFile={upload}
             background={state.btnBackground}
             color={state.btnColor}
             border={state.btnBorder}

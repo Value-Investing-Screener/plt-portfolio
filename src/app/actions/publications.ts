@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
-import { DOCUMENTS_BUCKET, readDocumentMeta } from "@/lib/plt/documents";
+import { DOCUMENTS_BUCKET, resolveDriveDocument } from "@/lib/plt/documents";
 import { fetchVimeoDurationMin } from "@/lib/plt/vimeo";
 import { PORTFOLIO_KEYS, type PortfolioKey } from "@/lib/portfolios";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -58,53 +58,14 @@ const ensurePublication = async (month: string) => {
 /* Rapports PDF                                                        */
 /* ------------------------------------------------------------------ */
 
-export type UploadUrlResult =
-  | { ok: true; path: string; token: string }
-  | { ok: false; error: string };
-
 /**
- * Prépare le transfert d'un rapport : renvoie une URL signée vers laquelle le
- * navigateur téléverse directement le PDF (contourne la limite de corps des
- * fonctions Vercel). Le fichier ne passe jamais par le serveur.
- */
-export const createReportUploadUrl = async (
-  month: string,
-  portfolioKey: string
-): Promise<UploadUrlResult> => {
-  try {
-    await requireAdmin();
-    if (!MONTH_PATTERN.test(month)) return { ok: false, error: "Mois invalide." };
-    if (!isPortfolioKey(portfolioKey)) {
-      return { ok: false, error: "Portefeuille inconnu." };
-    }
-
-    await ensurePublication(month);
-
-    const storagePath = `publications/${month}/${portfolioKey}.pdf`;
-    const { data, error } = await createSupabaseAdminClient()
-      .storage.from(DOCUMENTS_BUCKET)
-      .createSignedUploadUrl(storagePath, { upsert: true });
-
-    if (error || !data) {
-      return { ok: false, error: error?.message ?? "URL de transfert indisponible." };
-    }
-    return { ok: true, path: data.path, token: data.token };
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Action impossible.",
-    };
-  }
-};
-
-/**
- * Enregistre un rapport déjà téléversé : lit sa taille et son nombre de pages
- * depuis le stockage, crée la ligne, puis publie le mois.
+ * Enregistre le lien Google Drive d'un rapport : vérifie qu'il est accessible,
+ * lit sa taille et son nombre de pages, puis crée la ligne.
  */
 export const registerReport = async (
   month: string,
   portfolioKey: string,
-  storagePath: string
+  driveUrl: string
 ): Promise<ActionResult> =>
   guard(async () => {
     if (!MONTH_PATTERN.test(month)) {
@@ -114,23 +75,26 @@ export const registerReport = async (
       return { ok: false as const, error: "Portefeuille inconnu." };
     }
 
+    const resolved = await resolveDriveDocument(driveUrl);
+    if (!resolved.ok) return resolved;
+    const { document } = resolved;
+
     const supabase = createSupabaseAdminClient();
     const publicationId = await ensurePublication(month);
-    const meta = await readDocumentMeta(storagePath);
 
     const { error } = await supabase.from("plt_publication_report").upsert({
       publication_id: publicationId,
       portfolio_key: portfolioKey,
-      storage_path: storagePath,
-      file_size_bytes: meta.sizeBytes,
-      page_count: meta.pageCount,
+      document_url: document.url,
+      file_size_bytes: document.sizeBytes,
+      page_count: document.pageCount,
       uploaded_at: new Date().toISOString(),
     });
 
     if (error) return { ok: false as const, error: error.message };
 
     revalidatePath("/");
-    return { ok: true as const, message: "Rapport chargé." };
+    return { ok: true as const, message: "Rapport enregistré." };
   });
 
 export const removeReport = async (
@@ -145,6 +109,7 @@ export const removeReport = async (
     const supabase = createSupabaseAdminClient();
     const publicationId = await ensurePublication(month);
 
+    // Libère l'éventuel fichier chargé avant le passage à Google Drive.
     await supabase.storage
       .from(DOCUMENTS_BUCKET)
       .remove([`publications/${month}/${portfolioKey}.pdf`]);

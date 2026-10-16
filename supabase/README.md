@@ -1,7 +1,9 @@
 # Supabase — mise en route
 
-Supabase porte les **accès** (comptes, rôles), le **contenu éditorial** (publications
-mensuelles, revues annuelles) et le **stockage privé** des PDF.
+Supabase porte les **accès** (comptes, rôles) et le **contenu éditorial** (publications
+mensuelles, revues annuelles). Les PDF sont hébergés sur **Google Drive** : le Backoffice
+n'enregistre que leur lien de partage, qui doit être réglé sur « Tous les utilisateurs
+disposant du lien ».
 La composition des portefeuilles, les cours et les dividendes restent dans le Hasura
 Value Investing Screener.
 

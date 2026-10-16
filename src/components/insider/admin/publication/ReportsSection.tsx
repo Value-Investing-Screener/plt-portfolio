@@ -7,28 +7,30 @@ import type { PortfolioKey, PortfolioMeta } from "@/lib/portfolios";
 import { PdfBadge } from "../../ui";
 import {
   AdminSectionLabel,
+  DriveLinkInput,
   fileSlot,
   SLOT_STYLE,
   SmallButton,
-  UploadButton,
 } from "../shared";
 
-/** Les trois rapports PDF du mois — chargement direct ou retrait. */
+/** Les trois rapports PDF du mois — lien Google Drive ou retrait. */
 export const ReportsSection = ({
   portfolios,
   publication,
   pending,
-  onUpload,
+  onLink,
   onRemove,
 }: {
   portfolios: PortfolioMeta[];
   publication: Publication | null;
   pending: boolean;
-  onUpload: (portfolioKey: PortfolioKey, file: File) => void;
+  onLink: (portfolioKey: PortfolioKey, url: string) => void;
   onRemove: (portfolioKey: PortfolioKey) => void;
 }) => (
   <div>
-    <AdminSectionLabel>Rapports PDF · un par portefeuille</AdminSectionLabel>
+    <AdminSectionLabel>
+      Rapports PDF · un lien Google Drive par portefeuille
+    </AdminSectionLabel>
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {portfolios.map((portfolio) => {
         const existing = publication?.reports.find(
@@ -50,33 +52,33 @@ export const ReportsSection = ({
               >
                 Rapport - {portfolio.name}
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontFamily: MONO,
-                  marginTop: 2,
-                  color: state.stateColor,
-                }}
-              >
-                {existing
-                  ? documentMeta(existing.pageCount, existing.fileSizeBytes)
-                  : state.stateStr}
-              </div>
+              {existing ? (
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontFamily: MONO,
+                    marginTop: 2,
+                    color: state.stateColor,
+                  }}
+                >
+                  {documentMeta(existing.pageCount, existing.fileSizeBytes)}
+                </div>
+              ) : (
+                <DriveLinkInput
+                  label={state.btnLabel}
+                  disabled={pending}
+                  onSubmit={(url) => onLink(portfolio.key, url)}
+                  background={state.btnBackground}
+                  color={state.btnColor}
+                  border={state.btnBorder}
+                />
+              )}
             </div>
-            {existing ? (
+            {existing && (
               <SmallButton
                 label={state.btnLabel}
                 disabled={pending}
                 onClick={() => onRemove(portfolio.key)}
-                background={state.btnBackground}
-                color={state.btnColor}
-                border={state.btnBorder}
-              />
-            ) : (
-              <UploadButton
-                label={state.btnLabel}
-                disabled={pending}
-                onFile={(file) => onUpload(portfolio.key, file)}
                 background={state.btnBackground}
                 color={state.btnColor}
                 border={state.btnBorder}

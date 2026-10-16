@@ -1,5 +1,6 @@
 import { colors, MONO } from "@/design/tokens";
 import { documentMeta, monthLabelLong } from "@/lib/format";
+import { documentHref } from "@/lib/plt/constants";
 import type { Publication } from "@/lib/plt/types";
 import type { PortfolioMeta } from "@/lib/portfolios";
 import { BellIcon, EmptyState, Label, Panel, PdfBadge, TabHeader } from "./ui";
@@ -123,7 +124,7 @@ export const ReviewTab = ({ publications, portfolios }: ReviewTabProps) => (
             {reports.map(({ portfolio, report }) => (
               <a
                 key={portfolio.key}
-                href={`/api/documents/${report.storagePath}`}
+                href={documentHref(report.documentUrl)}
                 target="_blank"
                 rel="noreferrer"
                 className="plt-card"
