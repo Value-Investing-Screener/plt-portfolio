@@ -60,6 +60,8 @@ export type MemberRow = {
   role: "admin" | "user";
   isActive: boolean;
   invitedAt: string;
+  /** Dernière connexion (saisie des identifiants), `null` si jamais connecté. */
+  lastSignInAt: string | null;
   /** `null` tant que le membre n'a rien modifié dans l'onglet Allocation. */
   allocation: MemberAllocation | null;
 };

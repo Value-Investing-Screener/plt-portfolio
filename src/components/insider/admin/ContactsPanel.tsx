@@ -33,6 +33,14 @@ const initials = (name: string, email: string) =>
     .join("")
     .toUpperCase();
 
+/** « 12 oct. 2026 ». */
+const shortDate = (value: string) =>
+  new Date(value).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
 /** Réglages de l'onglet Allocation du membre : capital, répartition, date. */
 const AllocationLine = ({
   allocation,
@@ -70,12 +78,7 @@ const AllocationLine = ({
           </span>
         ))}
         <span style={{ color: colors.muted2 }}>
-          modifié le{" "}
-          {new Date(allocation.updatedAt).toLocaleDateString("fr-FR", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })}
+          modifié le {shortDate(allocation.updatedAt)}
         </span>
       </>
     ) : (
@@ -292,25 +295,42 @@ export const ContactsPanel = ({
               {member.email}
             </span>
 
-            <span
-              style={{
-                fontSize: 11,
-                fontFamily: MONO,
-                color: statusColor,
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
+            <span style={{ minWidth: 0 }}>
               <span
                 style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: statusColor,
+                  fontSize: 11,
+                  fontFamily: MONO,
+                  color: statusColor,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
                 }}
-              />
-              {member.isActive ? "Actif" : "Suspendu"}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: statusColor,
+                  }}
+                />
+                {member.isActive ? "Actif" : "Suspendu"}
+              </span>
+              <span
+                title="Dernière saisie des identifiants"
+                style={{
+                  display: "block",
+                  marginTop: 3,
+                  fontSize: 10.5,
+                  fontFamily: MONO,
+                  color: colors.muted2,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {member.lastSignInAt
+                  ? `Connecté le ${shortDate(member.lastSignInAt)}`
+                  : "Jamais connecté"}
+              </span>
             </span>
 
             <div

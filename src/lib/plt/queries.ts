@@ -1,5 +1,7 @@
 import "server-only";
 
+import { requireAdmin } from "@/lib/auth";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
@@ -237,9 +239,32 @@ const toMemberAllocation = (
   };
 };
 
+/**
+ * Date de dernière connexion de chaque compte, par identifiant. Elle vit dans
+ * `auth.users`, que seule la clé `service_role` peut lire.
+ */
+const getLastSignIns = async (): Promise<Map<string, string | null>> => {
+  const admin = createSupabaseAdminClient();
+  const lastSignIns = new Map<string, string | null>();
+  const perPage = 1000;
+
+  for (let page = 1; ; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error) break;
+    data.users.forEach((user) =>
+      lastSignIns.set(user.id, user.last_sign_in_at ?? null)
+    );
+    if (data.users.length < perPage) break;
+  }
+
+  return lastSignIns;
+};
+
 /** Carnet d'adresses du backoffice — réservé aux administrateurs (RLS). */
 export const getMembers = async (): Promise<MemberRow[]> => {
   if (!isSupabaseConfigured()) return [];
+  // La clé `service_role` sert à lire les dernières connexions.
+  await requireAdmin();
 
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
@@ -253,6 +278,8 @@ export const getMembers = async (): Promise<MemberRow[]> => {
 
   if (error || !data) return [];
 
+  const lastSignIns = await getLastSignIns();
+
   return data.map((row) => ({
     id: row.id,
     email: row.email,
@@ -260,6 +287,7 @@ export const getMembers = async (): Promise<MemberRow[]> => {
     role: row.role === "admin" ? "admin" : "user",
     isActive: row.is_active,
     invitedAt: row.invited_at,
+    lastSignInAt: lastSignIns.get(row.id) ?? null,
     allocation: toMemberAllocation(
       row.plt_member_allocation as unknown as MemberAllocationRow | null
     ),
