@@ -37,6 +37,22 @@ export type AnnualReview = {
   publishedAt: string | null;
 };
 
+/** Réglages de l'onglet Allocation, enregistrés par membre. */
+export type AllocationSettings = {
+  capital: number;
+  currency: string;
+  /** Exposition en %, par portefeuille — 40 = 40 %. */
+  exposures: Record<PortfolioKey, number>;
+};
+
+/** Réglages d'allocation d'un membre, vus depuis le backoffice. */
+export type MemberAllocation = {
+  capital: number;
+  currency: string;
+  exposures: Partial<Record<PortfolioKey, number>>;
+  updatedAt: string;
+};
+
 export type MemberRow = {
   id: string;
   email: string;
@@ -44,4 +60,6 @@ export type MemberRow = {
   role: "admin" | "user";
   isActive: boolean;
   invitedAt: string;
+  /** `null` tant que le membre n'a rien modifié dans l'onglet Allocation. */
+  allocation: MemberAllocation | null;
 };

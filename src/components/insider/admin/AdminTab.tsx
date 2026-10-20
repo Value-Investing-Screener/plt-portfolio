@@ -113,6 +113,7 @@ export const AdminTab = ({ data }: { data: AdminData }) => {
 
       <ContactsPanel
         members={data.members}
+        portfolios={data.portfolios}
         currentMemberId={data.currentMemberId}
         runAction={runAction}
         notify={notify}

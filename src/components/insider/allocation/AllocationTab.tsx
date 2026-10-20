@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { saveAllocation } from "@/app/actions/allocation";
 import { useGetConversionsQuery } from "@/app/api/useGetConversion";
 import { useGetPortofliosQuery } from "@/app/api/useGetPortfolios";
 import {
@@ -9,6 +10,7 @@ import {
   getConversionRows,
   type Holding,
 } from "@/lib/allocation";
+import type { AllocationSettings } from "@/lib/plt/types";
 import {
   portfolioDisplayName,
   type PortfolioKey,
@@ -21,25 +23,81 @@ import { SettingsPanel } from "./SettingsPanel";
 
 export type Exposures = Record<PortfolioKey, number>;
 
+/** Délai sans modification avant l'enregistrement : un glissé de curseur = une écriture. */
+const SAVE_DELAY_MS = 600;
+
+/**
+ * Enregistre les réglages en base après chaque modification, une fois le
+ * membre arrêté. Une modification encore en attente est envoyée sans délai
+ * si le membre quitte l'onglet ou la page.
+ */
+const useAutoSave = (settings: AllocationSettings) => {
+  const latest = useRef(settings);
+  const pending = useRef(false);
+  const mounted = useRef(false);
+
+  const flush = useRef(() => {
+    if (!pending.current) return;
+    pending.current = false;
+    saveAllocation(latest.current)
+      .then((result) => {
+        if (!result.ok) console.warn("[PLT] Allocation non enregistrée :", result.error);
+      })
+      .catch((error) =>
+        console.warn("[PLT] Allocation non enregistrée :", error)
+      );
+  });
+
+  useEffect(() => {
+    latest.current = settings;
+    // Les réglages chargés depuis la base n'ont pas à être réécrits.
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    pending.current = true;
+    const timer = setTimeout(flush.current, SAVE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [settings]);
+
+  useEffect(() => {
+    const send = flush.current;
+    window.addEventListener("pagehide", send);
+    return () => {
+      window.removeEventListener("pagehide", send);
+      send();
+    };
+  }, []);
+};
+
 type AllocationTabProps = {
   /** Portefeuilles modèles (nom, tagline, couleur) — table `plt_portfolio`. */
   portfolios: PortfolioMeta[];
+  /** Derniers réglages enregistrés du membre (ou valeurs par défaut). */
+  initialSettings: AllocationSettings;
 };
 
-export const AllocationTab = ({ portfolios }: AllocationTabProps) => {
-  // Réglages de simulation — locaux à cette page.
-  const [capital, setCapital] = useState(100000);
-  const [currency, setCurrency] = useState("EUR");
-  const [exposures, setExposures] = useState<Exposures>({
-    efficient: 40,
-    dividende: 35,
-    antifragile: 25,
-  });
+export const AllocationTab = ({
+  portfolios,
+  initialSettings,
+}: AllocationTabProps) => {
+  // Réglages de simulation — propres à chaque membre, enregistrés en base.
+  const [capital, setCapital] = useState(initialSettings.capital);
+  const [currency, setCurrency] = useState(initialSettings.currency);
+  const [exposures, setExposures] = useState<Exposures>(
+    initialSettings.exposures
+  );
   const onCapitalChange = setCapital;
   const onCurrencyChange = setCurrency;
   const onExposureChange = (key: PortfolioKey, value: number) =>
     setExposures((current) => ({ ...current, [key]: value }));
 
+  useAutoSave(
+    useMemo(
+      () => ({ capital, currency, exposures }),
+      [capital, currency, exposures]
+    )
+  );
 
   const {
     data: hasuraPortfolios,

@@ -4,12 +4,15 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   PORTFOLIO_FALLBACK,
+  PORTFOLIO_KEYS,
   portfolioColor,
   type PortfolioKey,
   type PortfolioMeta,
 } from "@/lib/portfolios";
 import type {
+  AllocationSettings,
   AnnualReview,
+  MemberAllocation,
   MemberRow,
   Publication,
   PublicationReport,
@@ -160,8 +163,79 @@ export const getAnnualReviews = async ({
 };
 
 /* ------------------------------------------------------------------ */
+/* Réglages d'allocation                                               */
+/* ------------------------------------------------------------------ */
+
+/** Réglages d'un membre qui n'a encore rien modifié. */
+const DEFAULT_ALLOCATION: AllocationSettings = {
+  capital: 100000,
+  currency: "EUR",
+  exposures: { efficient: 40, dividende: 35, antifragile: 25 },
+};
+
+/** Derniers réglages d'allocation du membre connecté (RLS : sa ligne seule). */
+export const getAllocationSettings = async (
+  memberId: string
+): Promise<AllocationSettings> => {
+  if (!isSupabaseConfigured()) return DEFAULT_ALLOCATION;
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("plt_member_allocation")
+    .select("capital, currency, plt_member_exposure ( portfolio_key, exposure_pct )")
+    .eq("member_id", memberId)
+    .maybeSingle();
+
+  if (error || !data) return DEFAULT_ALLOCATION;
+
+  const saved = new Map(
+    data.plt_member_exposure.map((row) => [row.portfolio_key, row.exposure_pct])
+  );
+
+  return {
+    capital: Number(data.capital),
+    currency: data.currency,
+    // Un portefeuille ajouté depuis le dernier enregistrement prend sa valeur
+    // par défaut plutôt que de rester vide.
+    exposures: Object.fromEntries(
+      PORTFOLIO_KEYS.map((key) => [
+        key,
+        saved.get(key) ?? DEFAULT_ALLOCATION.exposures[key],
+      ])
+    ) as AllocationSettings["exposures"],
+  };
+};
+
+/* ------------------------------------------------------------------ */
 /* Contacts                                                            */
 /* ------------------------------------------------------------------ */
+
+type MemberAllocationRow = {
+  capital: number;
+  currency: string;
+  updated_at: string;
+  plt_member_exposure: { portfolio_key: string; exposure_pct: number }[];
+};
+
+const toMemberAllocation = (
+  row: MemberAllocationRow | MemberAllocationRow[] | null
+): MemberAllocation | null => {
+  // Relation 1:1 : PostgREST renvoie un objet, ou un tableau selon la version.
+  const allocation = Array.isArray(row) ? row[0] : row;
+  if (!allocation) return null;
+
+  return {
+    capital: Number(allocation.capital),
+    currency: allocation.currency,
+    exposures: Object.fromEntries(
+      allocation.plt_member_exposure.map((item) => [
+        item.portfolio_key,
+        item.exposure_pct,
+      ])
+    ),
+    updatedAt: allocation.updated_at,
+  };
+};
 
 /** Carnet d'adresses du backoffice — réservé aux administrateurs (RLS). */
 export const getMembers = async (): Promise<MemberRow[]> => {
@@ -170,7 +244,11 @@ export const getMembers = async (): Promise<MemberRow[]> => {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from("plt_member")
-    .select("id, email, full_name, role, is_active, invited_at")
+    .select(
+      `id, email, full_name, role, is_active, invited_at,
+       plt_member_allocation ( capital, currency, updated_at,
+         plt_member_exposure ( portfolio_key, exposure_pct ) )`
+    )
     .order("invited_at", { ascending: true });
 
   if (error || !data) return [];
@@ -182,5 +260,8 @@ export const getMembers = async (): Promise<MemberRow[]> => {
     role: row.role === "admin" ? "admin" : "user",
     isActive: row.is_active,
     invitedAt: row.invited_at,
+    allocation: toMemberAllocation(
+      row.plt_member_allocation as unknown as MemberAllocationRow | null
+    ),
   }));
 };

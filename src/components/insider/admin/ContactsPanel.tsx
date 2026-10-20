@@ -15,8 +15,10 @@ import {
 } from "@/app/actions/passwordReset";
 import type { ActionResult } from "@/app/actions/publications";
 import { colors, MONO } from "@/design/tokens";
-import type { MemberRow } from "@/lib/plt/types";
-import { EmptyState, Label, Panel, PrimaryButton } from "../ui";
+import { money } from "@/lib/format";
+import type { MemberAllocation, MemberRow } from "@/lib/plt/types";
+import type { PortfolioMeta } from "@/lib/portfolios";
+import { Dot, EmptyState, Label, Panel, PrimaryButton } from "../ui";
 import { ResetLinkModal } from "./ResetLinkModal";
 import { INPUT_STYLE, SmallButton, type Flash, type RunAction } from "./shared";
 
@@ -31,13 +33,66 @@ const initials = (name: string, email: string) =>
     .join("")
     .toUpperCase();
 
+/** Réglages de l'onglet Allocation du membre : capital, répartition, date. */
+const AllocationLine = ({
+  allocation,
+  portfolios,
+}: {
+  allocation: MemberAllocation | null;
+  portfolios: PortfolioMeta[];
+}) => (
+  <div
+    style={{
+      gridColumn: "1 / -1",
+      display: "flex",
+      alignItems: "center",
+      gap: "6px 16px",
+      flexWrap: "wrap",
+      paddingLeft: 40,
+      fontFamily: MONO,
+      fontSize: 11.5,
+      color: colors.muted,
+    }}
+  >
+    {allocation ? (
+      <>
+        <span style={{ color: colors.text }}>
+          {money(allocation.capital, allocation.currency)}
+        </span>
+        {portfolios.map((portfolio) => (
+          <span
+            key={portfolio.key}
+            style={{ display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <Dot color={portfolio.color} />
+            {portfolio.name.replace(/^Portefeuille\s+/i, "")}{" "}
+            {allocation.exposures[portfolio.key] ?? 0} %
+          </span>
+        ))}
+        <span style={{ color: colors.muted2 }}>
+          modifié le{" "}
+          {new Date(allocation.updatedAt).toLocaleDateString("fr-FR", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })}
+        </span>
+      </>
+    ) : (
+      <span style={{ color: colors.muted2 }}>Aucune allocation enregistrée</span>
+    )}
+  </div>
+);
+
 export const ContactsPanel = ({
   members,
+  portfolios,
   currentMemberId,
   runAction,
   notify,
 }: {
   members: MemberRow[];
+  portfolios: PortfolioMeta[];
   currentMemberId: string;
   runAction: RunAction;
   notify: (flash: NonNullable<Flash>) => void;
@@ -328,6 +383,11 @@ export const ContactsPanel = ({
                 className="plt-btn-danger"
               />
             </div>
+
+            <AllocationLine
+              allocation={member.allocation}
+              portfolios={portfolios}
+            />
           </div>
         );
       })}
