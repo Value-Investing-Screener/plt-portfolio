@@ -27,6 +27,15 @@ export type Exposures = Record<PortfolioKey, number>;
 const SAVE_DELAY_MS = 600;
 
 /**
+ * Derniers réglages de la session, par membre. Le cache de navigation de
+ * Next.js réaffiche la page avec les réglages chargés à la première visite :
+ * en revenant sur l'onglet, on repart de ceux-ci plutôt que de cette version
+ * périmée. Remis à zéro à chaque rechargement complet de la page.
+ */
+let sessionSettings: { memberId: string; settings: AllocationSettings } | null =
+  null;
+
+/**
  * Enregistre les réglages en base après chaque modification, une fois le
  * membre arrêté. Une modification encore en attente est envoyée sans délai
  * si le membre quitte l'onglet ou la page.
@@ -75,29 +84,39 @@ type AllocationTabProps = {
   portfolios: PortfolioMeta[];
   /** Derniers réglages enregistrés du membre (ou valeurs par défaut). */
   initialSettings: AllocationSettings;
+  /** Membre connecté — les réglages de session ne passent pas d'un compte à l'autre. */
+  memberId: string;
 };
 
 export const AllocationTab = ({
   portfolios,
   initialSettings,
+  memberId,
 }: AllocationTabProps) => {
   // Réglages de simulation — propres à chaque membre, enregistrés en base.
-  const [capital, setCapital] = useState(initialSettings.capital);
-  const [currency, setCurrency] = useState(initialSettings.currency);
-  const [exposures, setExposures] = useState<Exposures>(
-    initialSettings.exposures
+  const [initial] = useState(() =>
+    sessionSettings?.memberId === memberId
+      ? sessionSettings.settings
+      : initialSettings
   );
+  const [capital, setCapital] = useState(initial.capital);
+  const [currency, setCurrency] = useState(initial.currency);
+  const [exposures, setExposures] = useState<Exposures>(initial.exposures);
   const onCapitalChange = setCapital;
   const onCurrencyChange = setCurrency;
   const onExposureChange = (key: PortfolioKey, value: number) =>
     setExposures((current) => ({ ...current, [key]: value }));
 
-  useAutoSave(
-    useMemo(
-      () => ({ capital, currency, exposures }),
-      [capital, currency, exposures]
-    )
+  const settings = useMemo(
+    () => ({ capital, currency, exposures }),
+    [capital, currency, exposures]
   );
+
+  useEffect(() => {
+    sessionSettings = { memberId, settings };
+  }, [memberId, settings]);
+
+  useAutoSave(settings);
 
   const {
     data: hasuraPortfolios,

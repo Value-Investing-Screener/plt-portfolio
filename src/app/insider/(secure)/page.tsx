@@ -15,5 +15,11 @@ export default async function AllocationPage() {
     getPortfolios(),
     getAllocationSettings(member.id),
   ]);
-  return <AllocationTab portfolios={portfolios} initialSettings={settings} />;
+  return (
+    <AllocationTab
+      portfolios={portfolios}
+      initialSettings={settings}
+      memberId={member.id}
+    />
+  );
 }
