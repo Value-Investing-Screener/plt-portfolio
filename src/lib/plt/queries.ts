@@ -270,7 +270,7 @@ export const getMembers = async (): Promise<MemberRow[]> => {
   const { data, error } = await supabase
     .from("plt_member")
     .select(
-      `id, email, full_name, role, is_active, invited_at,
+      `id, email, full_name, role, is_active, invited_at, last_seen_at,
        plt_member_allocation ( capital, currency, updated_at,
          plt_member_exposure ( portfolio_key, exposure_pct ) )`
     )
@@ -288,6 +288,7 @@ export const getMembers = async (): Promise<MemberRow[]> => {
     isActive: row.is_active,
     invitedAt: row.invited_at,
     lastSignInAt: lastSignIns.get(row.id) ?? null,
+    lastSeenAt: row.last_seen_at,
     allocation: toMemberAllocation(
       row.plt_member_allocation as unknown as MemberAllocationRow | null
     ),

@@ -62,6 +62,8 @@ export type MemberRow = {
   invitedAt: string;
   /** Dernière connexion (saisie des identifiants), `null` si jamais connecté. */
   lastSignInAt: string | null;
+  /** Dernier passage dans l'espace client (à l'heure près), `null` si aucun depuis le suivi. */
+  lastSeenAt: string | null;
   /** `null` tant que le membre n'a rien modifié dans l'onglet Allocation. */
   allocation: MemberAllocation | null;
 };

@@ -317,7 +317,11 @@ export const ContactsPanel = ({
                 {member.isActive ? "Actif" : "Suspendu"}
               </span>
               <span
-                title="Dernière saisie des identifiants"
+                title={
+                  member.lastSeenAt
+                    ? "Dernier passage dans l'espace client"
+                    : "Dernière saisie des identifiants"
+                }
                 style={{
                   display: "block",
                   marginTop: 3,
@@ -327,7 +331,9 @@ export const ContactsPanel = ({
                   whiteSpace: "nowrap",
                 }}
               >
-                {member.lastSignInAt
+                {member.lastSeenAt
+                  ? `Vu le ${shortDate(member.lastSeenAt)}`
+                  : member.lastSignInAt
                   ? `Connecté le ${shortDate(member.lastSignInAt)}`
                   : "Jamais connecté"}
               </span>

@@ -67,6 +67,13 @@ export const getCurrentMember = cache(async (): Promise<Member | null> => {
   // pas d'accès, plutôt qu'un accès à moitié valide.
   if (!data || !data.is_active) return null;
 
+  // Dernière visite, pour le backoffice. La fonction n'écrit qu'une fois par
+  // heure ; un échec ne doit jamais bloquer l'accès.
+  await supabase.rpc("plt_touch_last_seen").then(
+    () => undefined,
+    () => undefined
+  );
+
   return {
     id: data.id,
     email: data.email,
